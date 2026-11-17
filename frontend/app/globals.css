@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================================================================
+   MONOCHROME SWISS-ARCHIVAL DESIGN SYSTEM (100% WHITE, GRAY, BLACK)
+   Strictly Achromatic Palette: Zero color tints, WCAG AAA Contrast,
+   Precision 1.5px-2px Architectural Borders
+   ========================================================================= */
+:root,
+html[data-theme="light"] {
+  --bg-canvas: #F4F4F5;         /* Zinc 100: Architectural Gray Workspace */
+  --bg-surface: #FFFFFF;        /* Pure White Card & Document Sheet */
+  --bg-subtle: #FAFAFA;         /* Zinc 50: Subtle Field Surface */
+  --bg-muted: #E4E4E7;          /* Zinc 200: Header & Well Surface */
+  --bg-emphasis: #09090B;       /* Zinc 950: Carbon Black Surface */
+  --text-primary: #09090B;      /* 18.2:1 on White (WCAG AAA) */
+  --text-secondary: #3F3F46;    /* 9.4:1 on White (WCAG AAA) */
+  --text-muted: #52525B;        /* 6.6:1 on White (WCAG AA+) */
+  --text-inverted: #FFFFFF;
+  --border-strong: #09090B;
+  --border-mid: #71717A;
+  --border-light: #D4D4D8;
+  --shadow-arch: 3px 3px 0px #09090B;
+  --shadow-arch-sm: 2px 2px 0px #09090B;
+}
+
+html[data-theme="dark"] {
+  --bg-canvas: #09090B;         /* Carbon Black Workspace */
+  --bg-surface: #18181B;        /* Zinc 900 Elevated Surface */
+  --bg-subtle: #121215;         /* Deep Gray Field Surface */
+  --bg-muted: #27272A;          /* Zinc 800 Muted Well */
+  --bg-emphasis: #FAFAFA;       /* Crisp White Emphasis */
+  --text-primary: #FAFAFA;      /* 18.1:1 on Black (WCAG AAA) */
+  --text-secondary: #D4D4D8;    /* 12.3:1 on Black (WCAG AAA) */
+  --text-muted: #A1A1AA;        /* 7.1:1 on Black (WCAG AAA) */
+  --text-inverted: #09090B;
+  --border-strong: #FAFAFA;
+  --border-mid: #71717A;
+  --border-light: #27272A;
+  --shadow-arch: 3px 3px 0px #000000;
+  --shadow-arch-sm: 2px 2px 0px #000000;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  line-height: 1.5;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.font-mono-tech {
+  font-family: var(--font-mono), 'IBM Plex Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Keyboard focus accessibility outline */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2.5px solid var(--text-primary) !important;
+  outline-offset: 2px !important;
+}
+
+/* Architectural Card & Buttons */
+.mono-card {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1.5px solid var(--border-strong);
+  border-radius: 8px;
+  box-shadow: var(--shadow-arch);
+}
+
+.mono-btn-primary {
+  background-color: var(--bg-emphasis);
+  color: var(--text-inverted);
+  border: 1.5px solid var(--border-strong);
+  border-radius: 6px;
+  font-weight: 700;
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+.mono-btn-primary:hover {
+  opacity: 0.90;
+  transform: translate(-1px, -1px);
+}
+.mono-btn-primary:active {
+  transform: translate(1px, 1px);
+}
+
+.mono-btn-secondary {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1.5px solid var(--border-strong);
+  border-radius: 6px;
+  box-shadow: var(--shadow-arch-sm);
+  font-weight: 600;
+  transition: transform 0.12s ease, background-color 0.12s ease;
+}
+.mono-btn-secondary:hover {
+  background-color: var(--bg-muted);
+  transform: translate(-1px, -1px);
+}
+.mono-btn-secondary:active {
+  transform: translate(1px, 1px);
+  box-shadow: none;
+}
+
+/* Scanner Laser Animation */
+@keyframes ocrScanSweep {
+  0%, 100% { top: 4%; }
+  50% { top: 92%; }
+}
+
+.ocr-laser-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #09090B;
+  box-shadow: 0 0 0 1px #FFFFFF, 0 4px 12px rgba(9, 9, 11, 0.45);
+  animation: ocrScanSweep 5.2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 25;
+}
+
+.ocr-zone-box {
+  position: relative;
+  border: 1.5px dashed #71717A;
+  border-radius: 4px;
+  transition: all 0.16s ease;
+  cursor: pointer;
+}
+.ocr-zone-box:hover,
+.ocr-zone-box.active-zone {
+  border: 2px solid #09090B;
+  background-color: rgba(9, 9, 11, 0.05);
+  box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px #09090B;
+  z-index: 20;
+}
