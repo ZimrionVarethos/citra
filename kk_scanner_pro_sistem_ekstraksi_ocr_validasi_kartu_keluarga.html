@@ -1,0 +1,2019 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KK-SCANNER PRO: Sistem Ekstraksi OCR & Validasi Kartu Keluarga</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script defer src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    /* =========================================================================
+       MONOCHROME SWISS-ARCHIVAL DESIGN SYSTEM (100% WHITE, GRAY, BLACK)
+       Strictly Achromatic Palette: Zero color tints, WCAG AAA Contrast,
+       Precision 1.5px-2px Architectural Borders, Anti-Slop Compliant
+       ========================================================================= */
+    :root,
+    html[data-theme="light"] {
+      --bg-canvas: #F4F4F5;         /* Zinc 100: Architectural Gray Workspace */
+      --bg-surface: #FFFFFF;        /* Pure White Card & Document Sheet */
+      --bg-subtle: #FAFAFA;         /* Zinc 50: Subtle Field Surface */
+      --bg-muted: #E4E4E7;          /* Zinc 200: Header & Well Surface */
+      --bg-emphasis: #09090B;       /* Zinc 950: Carbon Black Surface */
+      --text-primary: #09090B;      /* 18.2:1 on White (WCAG AAA) */
+      --text-secondary: #3F3F46;    /* 9.4:1 on White (WCAG AAA) */
+      --text-muted: #52525B;        /* 6.6:1 on White (WCAG AA+) */
+      --text-inverted: #FFFFFF;
+      --border-strong: #09090B;
+      --border-mid: #71717A;
+      --border-light: #D4D4D8;
+      --shadow-arch: 3px 3px 0px #09090B;
+      --shadow-arch-sm: 2px 2px 0px #09090B;
+    }
+
+    html[data-theme="dark"] {
+      --bg-canvas: #09090B;         /* Carbon Black Workspace */
+      --bg-surface: #18181B;        /* Zinc 900 Elevated Surface */
+      --bg-subtle: #121215;         /* Deep Gray Field Surface */
+      --bg-muted: #27272A;          /* Zinc 800 Muted Well */
+      --bg-emphasis: #FAFAFA;       /* Crisp White Emphasis */
+      --text-primary: #FAFAFA;      /* 18.1:1 on Black (WCAG AAA) */
+      --text-secondary: #D4D4D8;    /* 12.3:1 on Black (WCAG AAA) */
+      --text-muted: #A1A1AA;        /* 7.1:1 on Black (WCAG AAA) */
+      --text-inverted: #09090B;
+      --border-strong: #FAFAFA;
+      --border-mid: #71717A;
+      --border-light: #27272A;
+      --shadow-arch: 3px 3px 0px #000000;
+      --shadow-arch-sm: 2px 2px 0px #000000;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      overflow-x: hidden;
+      line-height: 1.5;
+      transition: background-color 0.18s ease, color 0.18s ease;
+    }
+
+    .font-mono-tech {
+      font-family: 'IBM Plex Mono', monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* R-39: Base cursor affordances */
+    a[href],
+    button,
+    summary,
+    select,
+    input[type="file"],
+    input[type="checkbox"],
+    label[for],
+    [role="button"],
+    [role="tab"] {
+      cursor: pointer;
+    }
+    button:disabled,
+    input:disabled,
+    select:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    /* R-32: High-contrast monochrome keyboard focus outline */
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    summary:focus-visible,
+    [tabindex]:focus-visible {
+      outline: 2.5px solid var(--text-primary) !important;
+      outline-offset: 2px !important;
+    }
+
+    /* Monochrome Architectural Cards & Controls */
+    .mono-card {
+      background-color: var(--bg-surface);
+      color: var(--text-primary);
+      border: 1.5px solid var(--border-strong);
+      border-radius: 8px;
+      box-shadow: var(--shadow-arch);
+    }
+
+    .mono-btn-primary {
+      background-color: var(--bg-emphasis);
+      color: var(--text-inverted);
+      border: 1.5px solid var(--border-strong);
+      border-radius: 6px;
+      font-weight: 700;
+      transition: transform 0.12s ease, opacity 0.12s ease;
+    }
+    .mono-btn-primary:hover {
+      opacity: 0.88;
+      transform: translate(-1px, -1px);
+    }
+    .mono-btn-primary:active {
+      transform: translate(1px, 1px);
+    }
+
+    .mono-btn-secondary {
+      background-color: var(--bg-surface);
+      color: var(--text-primary);
+      border: 1.5px solid var(--border-strong);
+      border-radius: 6px;
+      box-shadow: var(--shadow-arch-sm);
+      font-weight: 600;
+      transition: transform 0.12s ease, background-color 0.12s ease;
+    }
+    .mono-btn-secondary:hover {
+      background-color: var(--bg-muted);
+      transform: translate(-1px, -1px);
+    }
+    .mono-btn-secondary:active {
+      transform: translate(1px, 1px);
+      box-shadow: none;
+    }
+
+    /* OCR Scanner Laser & Bounding Box Zones on the KK Document Sheet */
+    @keyframes ocrScanSweep {
+      0%, 100% { top: 4%; }
+      50% { top: 92%; }
+    }
+
+    .ocr-laser-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background-color: #09090B;
+      box-shadow: 0 0 0 1px #FFFFFF, 0 4px 12px rgba(9, 9, 11, 0.45);
+      animation: ocrScanSweep 5.2s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 25;
+    }
+
+    .ocr-zone-box {
+      position: relative;
+      border: 1.5px dashed #71717A;
+      border-radius: 4px;
+      transition: all 0.16s ease;
+      cursor: pointer;
+    }
+    .ocr-zone-box:hover,
+    .ocr-zone-box.active-zone {
+      border: 2px solid #09090B;
+      background-color: rgba(9, 9, 11, 0.05);
+      box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px #09090B;
+      z-index: 20;
+    }
+
+    .high-contrast-threshold {
+      filter: contrast(1.45) grayscale(1);
+    }
+
+    .paused-motion,
+    .paused-motion * {
+      animation-play-state: paused !important;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- ===================================================================== -->
+  <!-- TOP ARCHITECTURAL HEADER BAR (WHITE, GRAY, BLACK)                     -->
+  <!-- ===================================================================== -->
+  <header class="sticky top-0 z-30 bg-[var(--bg-surface)] border-b-2 border-[var(--border-strong)]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[64px] py-2 flex flex-wrap items-center justify-between gap-3">
+      <!-- R-23: Honest Typographic Masthead with [LOGO] Stamp -->
+      <a href="#scannerWorkspaceSection" class="flex items-center gap-3 no-underline">
+        <span class="px-2.5 py-1 font-mono-tech text-xs font-bold border-2 border-[var(--border-strong)] bg-[var(--bg-emphasis)] text-[var(--text-inverted)] rounded">
+          [LOGO]
+        </span>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-lg tracking-tight text-[var(--text-primary)]">KK-SCANNER PRO</span>
+            <span class="px-2 py-0.5 font-mono-tech text-[10px] font-bold bg-[var(--bg-muted)] text-[var(--text-primary)] border border-[var(--border-mid)] rounded">
+              PERMENDAGRI 109/2019
+            </span>
+          </div>
+          <span class="block text-[11px] text-[var(--text-secondary)]">
+            Sistem Ekstraksi OCR &amp; Validasi Struktur 16-Digit Kartu Keluarga
+          </span>
+        </div>
+      </a>
+
+      <!-- Navigation Links (R-24: All link to real sections) -->
+      <nav aria-label="Navigasi Utama" class="hidden lg:flex items-center gap-1">
+        <a href="#scannerWorkspaceSection" class="px-3 py-2 rounded text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] hover:bg-[var(--bg-muted)]">Meja Pemindai</a>
+        <a href="#nikValidatorSection" class="px-3 py-2 rounded text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] hover:bg-[var(--bg-muted)]">Dekoder 16-Digit NIK/KK</a>
+        <a href="#analyticsExportSection" class="px-3 py-2 rounded text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] hover:bg-[var(--bg-muted)]">Akurasi &amp; Ekspor JSON</a>
+        <a href="#standarBlangkoSection" class="px-3 py-2 rounded text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] hover:bg-[var(--bg-muted)]">Spesifikasi Blangko</a>
+      </nav>
+
+      <!-- Utility Actions -->
+      <div class="flex items-center gap-2">
+        <button
+          id="btnToggleTheme"
+          type="button"
+          aria-label="Ganti tema tampilan terang atau gelap"
+          class="mono-btn-secondary px-3 py-2 min-h-[40px] text-xs font-mono-tech"
+        >
+          <span id="themeToggleLabel">Mode Gelap</span>
+        </button>
+
+        <button
+          id="btnTriggerRescan"
+          type="button"
+          class="mono-btn-primary px-4 py-2 min-h-[40px] text-xs inline-flex items-center gap-2"
+        >
+          <span>Pindai Ulang OCR</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1">
+
+    <!-- ===================================================================== -->
+    <!-- SECTION 1: EXECUTIVE TOOLBAR & R-27 UI STATE SWITCHER                 -->
+    <!-- ===================================================================== -->
+    <section class="border-b-2 border-[var(--border-strong)] bg-[var(--bg-muted)] py-5">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div class="space-y-1">
+            <div class="flex flex-wrap items-center gap-2 text-xs font-mono-tech text-[var(--text-secondary)]">
+              <span>DOKUMEN KEPENDUDUKAN RI</span>
+              <span>/</span>
+              <span>FORMULIR BLANGKO HVS A4 PUTIH</span>
+              <span>/</span>
+              <span id="activeDocStatusBadge" class="font-bold text-[var(--text-primary)] underline">STATUS: TERVERIFIKASI</span>
+            </div>
+            <h1 class="font-extrabold text-2xl sm:text-3xl tracking-tight text-[var(--text-primary)]">
+              Pemindaian &amp; Ekstraksi Data Kartu Keluarga Otomatis
+            </h1>
+          </div>
+
+          <!-- R-27: Explicit 4 UI States Switcher -->
+          <div class="mono-card p-2.5 bg-[var(--bg-surface)] shrink-0">
+            <span class="block text-[10px] font-mono-tech font-bold uppercase text-[var(--text-muted)] mb-1.5">
+              Simulasi Status Antarmuka Pemindai (Aturan R-27):
+            </span>
+            <div role="group" aria-label="Pilih status antarmuka pemindai" class="flex flex-wrap gap-1.5">
+              <button type="button" data-ocr-state="ready" class="ocr-state-btn mono-btn-primary px-2.5 py-1 min-h-[34px] text-xs">Hasil OCR (Ready)</button>
+              <button type="button" data-ocr-state="loading" class="ocr-state-btn mono-btn-secondary px-2.5 py-1 min-h-[34px] text-xs">Proses Scan (Loading)</button>
+              <button type="button" data-ocr-state="empty" class="ocr-state-btn mono-btn-secondary px-2.5 py-1 min-h-[34px] text-xs">Kosong (Empty)</button>
+              <button type="button" data-ocr-state="error" class="ocr-state-btn mono-btn-secondary px-2.5 py-1 min-h-[34px] text-xs">Gagal Baca (Error)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SECTION 2: MAIN SPLIT WORKBENCH (DOCUMENT VIEWPORT VS EXTRACTED DATA) -->
+    <!-- ===================================================================== -->
+    <section id="scannerWorkspaceSection" class="py-8 border-b-2 border-[var(--border-strong)]">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- Top Document Control Bar -->
+        <div class="mono-card p-4 mb-6 grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+          <div class="md:col-span-5">
+            <label for="sampleDocSelect" class="block text-xs font-bold uppercase text-[var(--text-secondary)] mb-1">
+              1. Pilih Sampel Dokumen Kartu Keluarga:
+            </label>
+            <select
+              id="sampleDocSelect"
+              class="w-full px-3 py-2 min-h-[42px] rounded bg-[var(--bg-subtle)] border-2 border-[var(--border-strong)] text-xs sm:text-sm font-bold text-[var(--text-primary)]"
+            >
+              <option value="0">Sampel #1: KK Kota Bogor (4 Anggota • Cetak HVS Tajam • Valid)</option>
+              <option value="1">Sampel #2: KK Jakarta Selatan (5 Anggota • Scan Ponsel • Valid)</option>
+              <option value="2">Sampel #3: KK Pisah Keluarga (2 Anggota • 1 Peringatan Digit NIK)</option>
+            </select>
+          </div>
+
+          <div class="md:col-span-3">
+            <label for="uploadKKInput" class="block text-xs font-bold uppercase text-[var(--text-secondary)] mb-1">
+              2. Unggah Berkas KK (JPG/PNG):
+            </label>
+            <label
+              for="uploadKKInput"
+              class="w-full px-3 py-2 min-h-[42px] rounded bg-[var(--bg-subtle)] hover:bg-[var(--bg-muted)] border-2 border-dashed border-[var(--border-strong)] text-xs font-bold text-[var(--text-primary)] flex items-center justify-center gap-2"
+            >
+              <span>Pilih Berkas Dokumen</span>
+            </label>
+            <input id="uploadKKInput" type="file" accept="image/*" class="hidden" />
+          </div>
+
+          <div class="md:col-span-4 flex flex-wrap items-center md:justify-end gap-1.5">
+            <button
+              id="btnRotateDoc"
+              type="button"
+              class="mono-btn-secondary px-3 py-2 min-h-[42px] text-xs font-mono-tech"
+              title="Putar orientasi dokumen 90 derajat"
+            >
+              Rotasi <span id="rotateDegLabel">0°</span>
+            </button>
+            <button
+              id="btnThresholdToggle"
+              type="button"
+              class="mono-btn-secondary px-3 py-2 min-h-[42px] text-xs font-mono-tech"
+              title="Aktifkan filter binerisasi hitam-putih untuk prapemrosesan OCR"
+            >
+              Biner B/W: <span id="thresholdStateLabel">Mati</span>
+            </button>
+            <button
+              id="btnPauseLaser"
+              type="button"
+              class="mono-btn-secondary px-3 py-2 min-h-[42px] text-xs font-mono-tech"
+            >
+              <span id="pauseLaserLabel">Jeda Laser</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- R-27 STATE: LOADING -->
+        <div id="ocrStateLoadingBox" class="hidden mono-card p-12 text-center space-y-4 my-4" role="status" aria-live="polite">
+          <div class="w-12 h-12 mx-auto border-4 border-[var(--border-light)] border-t-[var(--border-strong)] rounded-full animate-spin"></div>
+          <h2 class="font-bold text-xl text-[var(--text-primary)]">
+            Sedang Mengekstraksi Zona Tabel &amp; Memvalidasi 16-Digit NIK...
+          </h2>
+          <p class="text-sm text-[var(--text-secondary)] max-w-md mx-auto">
+            Mesin OCR sedang meluruskan kemiringan kertas (*deskew*), membaca 17 kolom tabel Kartu Keluarga, dan memverifikasi tanda tangan elektronik QR Code.
+          </p>
+          <button id="btnSkipLoading" type="button" class="mono-btn-secondary px-4 py-2 min-h-[40px] text-xs">
+            Tampilkan Hasil Sekarang
+          </button>
+        </div>
+
+        <!-- R-27 STATE: EMPTY -->
+        <div id="ocrStateEmptyBox" class="hidden mono-card p-12 text-center space-y-4 my-4">
+          <span class="inline-block px-3 py-1 rounded font-mono-tech text-xs font-bold bg-[var(--bg-muted)] border border-[var(--border-strong)]">
+            MEJA PEMINDAI KOSONG
+          </span>
+          <h2 class="font-bold text-xl text-[var(--text-primary)]">
+            Belum Ada Dokumen Kartu Keluarga yang Dimuat
+          </h2>
+          <p class="text-sm text-[var(--text-secondary)] max-w-md mx-auto">
+            Pilih salah satu sampel dokumen Kartu Keluarga pada bilah kontrol di atas atau unggah foto lembar KK untuk memulai ekstraksi tabel otomatis.
+          </p>
+          <button id="btnLoadDefaultSample" type="button" class="mono-btn-primary px-5 py-2.5 min-h-[42px] text-xs sm:text-sm">
+            Muat Sampel KK Kota Bogor
+          </button>
+        </div>
+
+        <!-- R-27 STATE: ERROR -->
+        <div id="ocrStateErrorBox" class="hidden mono-card p-12 text-center space-y-4 my-4 border-2 border-[var(--border-strong)]" role="alert">
+          <span class="inline-block px-3 py-1 rounded font-mono-tech text-xs font-bold bg-[var(--bg-emphasis)] text-[var(--text-inverted)]">
+            ERR_OCR_LOW_DPI • GAGAL EKSTRAKSI TABEL
+          </span>
+          <h2 class="font-bold text-xl text-[var(--text-primary)]">
+            Resolusi Citra Kartu Keluarga Terlalu Rendah atau Terpotong
+          </h2>
+          <p class="text-sm text-[var(--text-secondary)] max-w-md mx-auto">
+            Sistem mendeteksi bagian Nomor KK 16 digit atau kolom NIK buram (di bawah 150 DPI). Gunakan filter Biner B/W atau muat ulang dokumen dengan pencahayaan merata.
+          </p>
+          <button id="btnRecoverFromError" type="button" class="mono-btn-primary px-5 py-2.5 min-h-[42px] text-xs sm:text-sm">
+            Pulihkan &amp; Muat Ulang Dokumen
+          </button>
+        </div>
+
+        <!-- R-27 STATE: READY (SPLIT WORKBENCH) -->
+        <div id="ocrStateReadyWorkbench" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+          <!-- =============================================================== -->
+          <!-- LEFT 6 COLS: INTERACTIVE KARTU KELUARGA DOCUMENT SHEET VIEWPORT -->
+          <!-- =============================================================== -->
+          <div class="lg:col-span-6 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
+              <span class="font-mono-tech font-bold uppercase text-[var(--text-secondary)]">
+                PRATINJAU LEMBAR KARTU KELUARGA (KLIK ZONA UNTUK FILTER)
+              </span>
+              <span id="activeZoneIndicator" class="px-2.5 py-0.5 rounded font-mono-tech font-bold bg-[var(--bg-emphasis)] text-[var(--text-inverted)]">
+                Zona Aktif: Semua Zona (5/5)
+              </span>
+            </div>
+
+            <!-- Outer Dark Gray Scanner Bed -->
+            <div class="p-3 sm:p-4 rounded-xl bg-[#18181B] border-2 border-[var(--border-strong)] overflow-hidden">
+              
+              <!-- Uploaded Custom Image Preview (Hidden unless user uploads a photo) -->
+              <div id="uploadedCustomPreviewBox" class="hidden mb-3 rounded border border-white/30 bg-black p-2 text-center">
+                <img id="uploadedCustomPreviewImg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Pratinjau dokumen Kartu Keluarga yang diunggah" width="480" height="320" class="max-h-48 w-auto mx-auto object-contain rounded" />
+                <p class="text-[11px] font-mono-tech text-zinc-300 mt-1">Citra Unggahan Pengguna Aktif • Diekstraksi ke Skema Tabel di Bawah</p>
+              </div>
+
+              <!-- Interactive Kartu Keluarga Sheet Facsimile (Always Light Paper for Authentic OCR View) -->
+              <div
+                id="kkSheetViewport"
+                class="relative bg-white text-[#09090B] rounded border-2 border-[#09090B] p-3 sm:p-4 shadow-lg transition-transform duration-300 select-none overflow-hidden"
+              >
+                <!-- Animated Monochrome Scanner Laser -->
+                <div id="scannerLaserBar" class="ocr-laser-line"></div>
+
+                <!-- KK SHEET HEADER & ZONA 1: NOMOR KK 16 DIGIT -->
+                <div
+                  data-ocr-zone="NOKK"
+                  tabindex="0"
+                  role="button"
+                  aria-label="Zona OCR 1: Nomor Kartu Keluarga 16 Digit"
+                  class="ocr-zone-box p-2.5 mb-2.5"
+                >
+                  <div class="flex items-center justify-between gap-2">
+                    <!-- Monochrome Garuda-Style Coat of Arms Emblem SVG -->
+                    <div class="flex items-center gap-2">
+                      <svg aria-hidden="true" class="w-8 h-8 shrink-0" viewBox="0 0 40 40" fill="none">
+                        <circle cx="20" cy="20" r="18" stroke="#09090B" stroke-width="2" fill="#F4F4F5"/>
+                        <path d="M10 18L20 9L30 18L26 29H14L10 18Z" fill="#09090B"/>
+                        <rect x="16" y="16" width="8" height="9" fill="#FFFFFF"/>
+                      </svg>
+                      <div class="leading-tight">
+                        <span class="block text-[9px] font-mono-tech font-bold uppercase text-zinc-600">REPUBLIK INDONESIA</span>
+                        <span class="block text-[10px] font-bold uppercase text-[#09090B]">DINAS KEPENDUDUKAN DAN PENCATATAN SIPIL</span>
+                      </div>
+                    </div>
+                    <span class="px-1.5 py-0.5 rounded bg-[#09090B] text-white font-mono-tech text-[9px] font-bold">
+                      ZONA 01 • 99.6%
+                    </span>
+                  </div>
+
+                  <div class="text-center mt-2 pt-1.5 border-t border-zinc-300">
+                    <p class="font-extrabold text-sm sm:text-base tracking-widest uppercase">KARTU KELUARGA</p>
+                    <p id="sheetNoKKText" class="font-mono-tech font-bold text-xs sm:text-sm tracking-wider mt-0.5">
+                      No. 3271041508190004
+                    </p>
+                  </div>
+                </div>
+
+                <!-- ZONA 2: METADATA KEPALA KELUARGA & ALAMAT -->
+                <div
+                  data-ocr-zone="METADATA"
+                  tabindex="0"
+                  role="button"
+                  aria-label="Zona OCR 2: Metadata Kepala Keluarga dan Alamat"
+                  class="ocr-zone-box p-2.5 mb-2.5 bg-zinc-50 text-[10px] sm:text-[11px]"
+                >
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="font-mono-tech font-bold text-[9px] uppercase text-zinc-600">IDENTITAS WILAYAH &amp; KEPALA KELUARGA</span>
+                    <span class="px-1.5 py-0.5 rounded bg-zinc-800 text-white font-mono-tech text-[9px] font-bold">ZONA 02 • 99.1%</span>
+                  </div>
+                  <div id="sheetMetadataGrid" class="grid grid-cols-2 gap-x-4 gap-y-1 font-mono-tech">
+                    <!-- Populated dynamically -->
+                  </div>
+                </div>
+
+                <!-- ZONA 3: TABEL ATAS (BIODATA & 16-DIGIT NIK ANGGOTA KELUARGA) -->
+                <div
+                  data-ocr-zone="TABEL_ATAS"
+                  tabindex="0"
+                  role="button"
+                  aria-label="Zona OCR 3: Tabel Atas Biodata dan NIK Anggota Keluarga"
+                  class="ocr-zone-box p-2 mb-2.5"
+                >
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="font-mono-tech font-bold text-[9px] uppercase text-zinc-600">TABEL ATAS (KOLOM 1 S.D. 10: BIODATA, NIK, TTL, PENDIDIKAN, PEKERJAAN)</span>
+                    <span class="px-1.5 py-0.5 rounded bg-[#09090B] text-white font-mono-tech text-[9px] font-bold">ZONA 03 • 98.7%</span>
+                  </div>
+                  <div class="overflow-x-auto">
+                    <table class="w-full border-collapse border border-zinc-400 text-[9px] sm:text-[10px] font-mono-tech">
+                      <thead>
+                        <tr class="bg-zinc-200 text-[#09090B]">
+                          <th class="border border-zinc-400 px-1 py-0.5">No</th>
+                          <th class="border border-zinc-400 px-1.5 py-0.5 text-left">Nama Lengkap</th>
+                          <th class="border border-zinc-400 px-1.5 py-0.5 text-left">NIK (16 Digit)</th>
+                          <th class="border border-zinc-400 px-1 py-0.5">L/P</th>
+                          <th class="border border-zinc-400 px-1.5 py-0.5 text-left">Tgl Lahir</th>
+                          <th class="border border-zinc-400 px-1.5 py-0.5 text-left">Pekerjaan</th>
+                        </tr>
+                      </thead>
+                      <tbody id="sheetUpperTableBody">
+                        <!-- Populated dynamically -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- ZONA 4: TABEL BAWAH (STATUS PERKAWINAN, HUBUNGAN KELUARGA & NAMA ORANG TUA) -->
+                <div
+                  data-ocr-zone="TABEL_BAWAH"
+                  tabindex="0"
+                  role="button"
+                  aria-label="Zona OCR 4: Tabel Bawah Status Hubungan Keluarga dan Orang Tua"
+                  class="ocr-zone-box p-2 mb-2.5"
+                >
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="font-mono-tech font-bold text-[9px] uppercase text-zinc-600">TABEL BAWAH (KOLOM 11 S.D. 17: STATUS KAWIN, HUBUNGAN, AYAH &amp; IBU)</span>
+                    <span class="px-1.5 py-0.5 rounded bg-zinc-800 text-white font-mono-tech text-[9px] font-bold">ZONA 04 • 98.2%</span>
+                  </div>
+                  <div class="overflow-x-auto">
+                    <table class="w-full border-collapse border border-zinc-400 text-[9px] sm:text-[10px] font-mono-tech">
+                      <thead>
+                        <tr class="bg-zinc-200 text-[#09090B]">
+                          <th class="border border-zinc-400 px-1 py-0.5">No</th>
+                          <th class="border border-zinc-400 px-1.5 py-0.5 text-left">Status Kawin</th>
+                          <th class="border border-zinc-400 px-1.5 py-0.5 text-left">Hubungan Keluarga</th>
+                          <th class="border border-zinc-400 px-1.5 py-0.5 text-left">Nama Ayah</th>
+                          <th class="border border-zinc-400 px-1.5 py-0.5 text-left">Nama Ibu</th>
+                        </tr>
+                      </thead>
+                      <tbody id="sheetLowerTableBody">
+                        <!-- Populated dynamically -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- ZONA 5: TANDA TANGAN ELEKTRONIK (QR CODE BSrE BSSN) -->
+                <div
+                  data-ocr-zone="TTE_QR"
+                  tabindex="0"
+                  role="button"
+                  aria-label="Zona OCR 5: Tanda Tangan Elektronik QR Code Dukcapil"
+                  class="ocr-zone-box p-2 flex items-center justify-between gap-3 bg-zinc-50"
+                >
+                  <div class="text-[9px] sm:text-[10px] leading-tight">
+                    <span class="px-1.5 py-0.5 rounded bg-[#09090B] text-white font-mono-tech text-[9px] font-bold inline-block mb-1">
+                      ZONA 05 • QR TTE TERVERIFIKASI
+                    </span>
+                    <p class="font-bold text-[#09090B]">Dokumen ini telah ditandatangani secara elektronik menggunakan sertifikat elektronik BSrE BSSN.</p>
+                    <p id="sheetIssuedDateText" class="font-mono-tech text-zinc-600 mt-0.5">Dikeluarkan Tanggal: 15-08-2023 • Kepala Dinas Dukcapil</p>
+                  </div>
+
+                  <!-- Monochrome Vector QR Code Stamp -->
+                  <svg aria-hidden="true" class="w-12 h-12 shrink-0 border border-[#09090B] p-1 bg-white" viewBox="0 0 36 36" fill="#09090B">
+                    <rect x="2" y="2" width="10" height="10" fill="none" stroke="#09090B" stroke-width="2"/>
+                    <rect x="5" y="5" width="4" height="4"/>
+                    <rect x="24" y="2" width="10" height="10" fill="none" stroke="#09090B" stroke-width="2"/>
+                    <rect x="27" y="5" width="4" height="4"/>
+                    <rect x="2" y="24" width="10" height="10" fill="none" stroke="#09090B" stroke-width="2"/>
+                    <rect x="5" y="27" width="4" height="4"/>
+                    <rect x="15" y="4" width="3" height="3"/>
+                    <rect x="15" y="10" width="6" height="3"/>
+                    <rect x="14" y="16" width="8" height="4"/>
+                    <rect x="25" y="16" width="4" height="6"/>
+                    <rect x="15" y="24" width="4" height="8"/>
+                    <rect x="23" y="26" width="9" height="4"/>
+                    <rect x="29" y="31" width="4" height="3"/>
+                  </svg>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Zone Filter Pills under Viewport -->
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="text-xs font-mono-tech font-bold text-[var(--text-secondary)] mr-1">Fokus Zona:</span>
+              <button type="button" data-zone-btn="ALL" class="zone-pill-btn mono-btn-primary px-2.5 py-1 min-h-[32px] text-xs font-mono-tech">Semua (5)</button>
+              <button type="button" data-zone-btn="NOKK" class="zone-pill-btn mono-btn-secondary px-2.5 py-1 min-h-[32px] text-xs font-mono-tech">01. No. KK</button>
+              <button type="button" data-zone-btn="METADATA" class="zone-pill-btn mono-btn-secondary px-2.5 py-1 min-h-[32px] text-xs font-mono-tech">02. Alamat</button>
+              <button type="button" data-zone-btn="TABEL_ATAS" class="zone-pill-btn mono-btn-secondary px-2.5 py-1 min-h-[32px] text-xs font-mono-tech">03. Tabel Atas</button>
+              <button type="button" data-zone-btn="TABEL_BAWAH" class="zone-pill-btn mono-btn-secondary px-2.5 py-1 min-h-[32px] text-xs font-mono-tech">04. Tabel Bawah</button>
+              <button type="button" data-zone-btn="TTE_QR" class="zone-pill-btn mono-btn-secondary px-2.5 py-1 min-h-[32px] text-xs font-mono-tech">05. QR TTE</button>
+            </div>
+          </div>
+
+          <!-- =============================================================== -->
+          <!-- RIGHT 6 COLS: STRUCTURED OCR EXTRACTION & VERIFICATION PANEL    -->
+          <!-- =============================================================== -->
+          <div class="lg:col-span-6 space-y-5">
+
+            <!-- Card 1: Extracted KK Header & Address Metadata (Editable) -->
+            <div id="extractedMetadataCard" class="mono-card p-5 space-y-4">
+              <div class="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[var(--border-strong)] pb-3">
+                <div>
+                  <span class="font-mono-tech text-[11px] font-bold uppercase text-[var(--text-muted)]">
+                    HASIL EKSTRAKSI ZONA 01 &amp; 02
+                  </span>
+                  <h2 class="font-bold text-lg text-[var(--text-primary)]">
+                    Identitas Kartu Keluarga &amp; Alamat Domisili
+                  </h2>
+                </div>
+                <button
+                  id="btnInspectNoKKStructure"
+                  type="button"
+                  class="mono-btn-secondary px-3 py-1.5 min-h-[36px] text-xs font-mono-tech"
+                >
+                  Bedah 16-Digit No. KK
+                </button>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label for="inputNoKK" class="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
+                    NOMOR KARTU KELUARGA (16 DIGIT)
+                  </label>
+                  <input
+                    id="inputNoKK"
+                    type="text"
+                    maxlength="16"
+                    class="w-full px-3 py-2 min-h-[38px] rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] font-mono-tech font-bold text-sm text-[var(--text-primary)]"
+                  />
+                </div>
+                <div>
+                  <label for="inputKepalaKeluarga" class="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
+                    NAMA KEPALA KELUARGA
+                  </label>
+                  <input
+                    id="inputKepalaKeluarga"
+                    type="text"
+                    class="w-full px-3 py-2 min-h-[38px] rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] font-bold text-sm text-[var(--text-primary)]"
+                  />
+                </div>
+                <div class="sm:col-span-2">
+                  <label for="inputAlamatKK" class="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
+                    ALAMAT LENGKAP / RT-RW / KELURAHAN / KECAMATAN / KOTA
+                  </label>
+                  <input
+                    id="inputAlamatKK"
+                    type="text"
+                    class="w-full px-3 py-2 min-h-[38px] rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] font-medium text-xs sm:text-sm text-[var(--text-primary)]"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: Extracted Family Members Table (Tabel Atas & Tabel Bawah) -->
+            <div id="extractedMembersCard" class="mono-card p-5 space-y-4">
+              <div class="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[var(--border-strong)] pb-3">
+                <div>
+                  <span class="font-mono-tech text-[11px] font-bold uppercase text-[var(--text-muted)]">
+                    HASIL EKSTRAKSI ZONA 03 &amp; 04
+                  </span>
+                  <h2 class="font-bold text-lg text-[var(--text-primary)]">
+                    Daftar Anggota Keluarga (<span id="memberCountLabel">4</span> Orang)
+                  </h2>
+                </div>
+
+                <!-- Table Column Group Switcher -->
+                <div role="tablist" aria-label="Pilih kelompok kolom tabel KK" class="inline-flex rounded border border-[var(--border-strong)] overflow-hidden text-xs font-mono-tech">
+                  <button type="button" data-table-tab="ALL" class="kk-table-tab px-2.5 py-1.5 min-h-[34px] font-bold bg-[var(--bg-emphasis)] text-[var(--text-inverted)]">Ringkasan</button>
+                  <button type="button" data-table-tab="UPPER" class="kk-table-tab px-2.5 py-1.5 min-h-[34px] font-bold bg-[var(--bg-surface)] text-[var(--text-primary)]">Tabel Atas</button>
+                  <button type="button" data-table-tab="LOWER" class="kk-table-tab px-2.5 py-1.5 min-h-[34px] font-bold bg-[var(--bg-surface)] text-[var(--text-primary)]">Tabel Bawah</button>
+                </div>
+              </div>
+
+              <!-- Search / Filter Member Input -->
+              <div class="flex flex-col sm:flex-row gap-2">
+                <div class="flex-1">
+                  <label for="memberSearchInput" class="sr-only">Cari nama atau NIK anggota keluarga</label>
+                  <input
+                    id="memberSearchInput"
+                    type="text"
+                    placeholder="Cari nama anggota, NIK, pekerjaan, atau status hubungan..."
+                    class="w-full px-3 py-2 min-h-[38px] rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] text-xs text-[var(--text-primary)]"
+                  />
+                </div>
+                <button
+                  id="btnAutoFixAnomalies"
+                  type="button"
+                  class="mono-btn-secondary px-3 py-2 min-h-[38px] text-xs font-mono-tech shrink-0"
+                >
+                  Validasi &amp; Koreksi NIK
+                </button>
+              </div>
+
+              <!-- Extracted Members Table -->
+              <div class="overflow-x-auto border border-[var(--border-strong)] rounded">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead id="extractedMembersThead" class="bg-[var(--bg-muted)] border-b border-[var(--border-strong)] font-mono-tech uppercase text-[11px]">
+                    <!-- Populated dynamically -->
+                  </thead>
+                  <tbody id="extractedMembersTbody" class="divide-y divide-[var(--border-light)]">
+                    <!-- Populated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+
+              <p class="text-[11px] font-mono-tech text-[var(--text-muted)]">
+                Klik tombol <strong>Bedah NIK</strong> atau <strong>Edit</strong> pada baris anggota untuk memeriksa kecocokan kode wilayah, jenis kelamin, dan tanggal lahir.
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SECTION 3: 16-DIGIT NIK & NOMOR KK STRUCTURAL DECODER & VALIDATOR     -->
+    <!-- Grounded in Official Disdukcapil 16-Digit Specification               -->
+    <!-- ===================================================================== -->
+    <section id="nikValidatorSection" class="py-10 border-b-2 border-[var(--border-strong)] bg-[var(--bg-muted)]">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <span class="font-mono-tech text-xs font-bold uppercase text-[var(--text-muted)] block mb-1">
+              VALIDATOR KEPENDUDUKAN OTOMATIS
+            </span>
+            <h2 class="font-extrabold text-2xl text-[var(--text-primary)]">
+              Dekoder &amp; Penguji Struktur 16-Digit NIK / Nomor KK
+            </h2>
+            <p class="text-xs sm:text-sm text-[var(--text-secondary)] mt-1 max-w-2xl">
+              Menguraikan struktur 16 digit sesuai ketentuan resmi <a href="https://dukcapil.klaten.go.id/arti-16-digit-nomor-induk-kependudukan-nik" target="_blank" rel="noopener noreferrer" class="font-bold underline text-[var(--text-primary)]">Ditjen Dukcapil Kemendagri</a> (6 digit kode wilayah, 6 digit tanggal lahir/penerbitan dengan penambahan +40 untuk perempuan, serta 4 digit nomor urut registrasi).
+            </p>
+          </div>
+
+          <div class="w-full md:w-80">
+            <label for="customNikInput" class="block text-xs font-mono-tech font-bold uppercase text-[var(--text-secondary)] mb-1">
+              Uji Nomor NIK / KK (16 Digit):
+            </label>
+            <input
+              id="customNikInput"
+              type="text"
+              maxlength="16"
+              value="3271041205850001"
+              class="w-full px-3.5 py-2 min-h-[42px] rounded bg-[var(--bg-surface)] border-2 border-[var(--border-strong)] font-mono-tech font-bold text-sm tracking-wider text-[var(--text-primary)]"
+            />
+          </div>
+        </div>
+
+        <!-- 5-Segment 16-Digit Breakdown Grid -->
+        <div id="nikSegmentsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <!-- Populated dynamically -->
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SECTION 4: OCR CONFIDENCE ANALYTICS & JSON / CSV EXPORT CONSOLE       -->
+    <!-- Asymmetrical 5:7 Split                                                -->
+    <!-- ===================================================================== -->
+    <section id="analyticsExportSection" class="py-10 border-b-2 border-[var(--border-strong)]">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+
+          <!-- Left 5 Cols: Monochrome Confidence Chart per Zone -->
+          <div class="lg:col-span-5 mono-card p-5 flex flex-col justify-between space-y-4">
+            <div class="border-b-2 border-[var(--border-strong)] pb-3">
+              <span class="font-mono-tech text-xs font-bold uppercase text-[var(--text-muted)]">
+                METRIK KUALITAS PEMINDAIAN
+              </span>
+              <h3 class="font-bold text-xl text-[var(--text-primary)] mt-0.5">
+                Tingkat Keyakinan OCR per Zona Blangko
+              </h3>
+            </div>
+
+            <div class="relative h-64 w-full">
+              <canvas id="ocrConfidenceChart"></canvas>
+            </div>
+
+            <div class="p-3 rounded bg-[var(--bg-muted)] border border-[var(--border-strong)] text-xs font-mono-tech flex items-center justify-between">
+              <span>Rata-rata Akurasi Karakter:</span>
+              <span id="avgOcrScoreLabel" class="font-bold text-sm">98.9% (Lulus Verifikasi)</span>
+            </div>
+          </div>
+
+          <!-- Right 7 Cols: Structured JSON & CSV Export Workbench -->
+          <div class="lg:col-span-7 mono-card p-5 flex flex-col justify-between space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[var(--border-strong)] pb-3">
+              <div>
+                <span class="font-mono-tech text-xs font-bold uppercase text-[var(--text-muted)]">
+                  INTEGRASI API &amp; EKSPOR DATA
+                </span>
+                <h3 class="font-bold text-xl text-[var(--text-primary)] mt-0.5">
+                  Output Terstruktur (JSON Skema Dukcapil &amp; CSV)
+                </h3>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2">
+                <button id="btnCopyJson" type="button" class="mono-btn-primary px-3.5 py-2 min-h-[38px] text-xs font-mono-tech">
+                  Salin JSON
+                </button>
+                <button id="btnDownloadCsv" type="button" class="mono-btn-secondary px-3.5 py-2 min-h-[38px] text-xs font-mono-tech">
+                  Unduh CSV Anggota
+                </button>
+              </div>
+            </div>
+
+            <pre id="jsonOutputPre" class="font-mono-tech text-xs bg-[#09090B] text-[#FAFAFA] p-4 rounded border border-[var(--border-strong)] overflow-x-auto leading-relaxed max-h-[290px]"></pre>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SECTION 5: OFFICIAL KARTU KELUARGA SPECIFICATION REFERENCE            -->
+    <!-- ===================================================================== -->
+    <section id="standarBlangkoSection" class="py-10 bg-[var(--bg-muted)]">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div>
+          <span class="font-mono-tech text-xs font-bold uppercase text-[var(--text-muted)] block mb-1">
+            REFERENSI REGULASI ADMINISTRASI KEPENDUDUKAN
+          </span>
+          <h2 class="font-extrabold text-2xl text-[var(--text-primary)]">
+            Spesifikasi Standar Blangko Kartu Keluarga &amp; Atribut OCR
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="mono-card p-5 space-y-2">
+            <span class="px-2 py-0.5 rounded font-mono-tech text-xs font-bold bg-[var(--bg-emphasis)] text-[var(--text-inverted)]">
+              PERMENDAGRI NO. 109 TAHUN 2019
+            </span>
+            <h3 class="font-bold text-base text-[var(--text-primary)] pt-1">Blangko Kertas Putih HVS A4 80gr</h3>
+            <p class="text-xs text-[var(--text-secondary)] leading-relaxed">
+              Berdasarkan <a href="https://peraturan.bpk.go.id/Details/138575/permendagri-no-109-tahun-2019" target="_blank" rel="noopener noreferrer" class="font-bold underline text-[var(--text-primary)]">Permendagri No. 109 Tahun 2019</a>, pencetakan Kartu Keluarga menggunakan kertas HVS putih ukuran A4 80 gram yang mempermudah binerisasi kontras hitam-putih pada mesin OCR.
+            </p>
+          </div>
+
+          <div class="mono-card p-5 space-y-2">
+            <span class="px-2 py-0.5 rounded font-mono-tech text-xs font-bold bg-[var(--bg-emphasis)] text-[var(--text-inverted)]">
+              STRUKTUR 17 KOLOM TABEL KK
+            </span>
+            <h3 class="font-bold text-base text-[var(--text-primary)] pt-1">Pemetaan Tabel Atas &amp; Tabel Bawah</h3>
+            <p class="text-xs text-[var(--text-secondary)] leading-relaxed">
+              Tabel Atas memuat 10 kolom identitas dasar (Nama Lengkap, NIK, Jenis Kelamin, Tempat/Tgl Lahir, Agama, Pendidikan, Pekerjaan, Gol. Darah), sedangkan Tabel Bawah memuat 7 kolom relasi keluarga, kewarganegaraan, dan nama orang tua sesuai pedoman <a href="https://dukcapil.kemendagri.go.id/" target="_blank" rel="noopener noreferrer" class="font-bold underline text-[var(--text-primary)]">Ditjen Dukcapil Kemendagri</a>.
+            </p>
+          </div>
+
+          <div class="mono-card p-5 space-y-2">
+            <span class="px-2 py-0.5 rounded font-mono-tech text-xs font-bold bg-[var(--bg-emphasis)] text-[var(--text-inverted)]">
+              VALIDASI SILANG 16 DIGIT
+            </span>
+            <h3 class="font-bold text-base text-[var(--text-primary)] pt-1">Deteksi Kesalahan Baca Karakter (OCR)</h3>
+            <p class="text-xs text-[var(--text-secondary)] leading-relaxed">
+              Sesuai ketentuan <a href="https://dukcapil.klaten.go.id/arti-16-digit-nomor-kartu-keluarga" target="_blank" rel="noopener noreferrer" class="font-bold underline text-[var(--text-primary)]">Arti 16 Digit Nomor KK &amp; NIK</a>, sistem memeriksa apakah digit ke-7 dan ke-8 pada NIK anggota perempuan bernilai `Tanggal Lahir + 40` untuk mendeteksi salah baca angka secara otomatis.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================================================================= -->
+  <!-- EDIT FAMILY MEMBER MODAL (CLOSABLE WITH ESCAPE R-32)                    -->
+  <!-- ======================================================================= -->
+  <div
+    id="editMemberModalBackdrop"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="editMemberModalTitle"
+    class="fixed inset-0 bg-black/65 z-50 hidden items-center justify-center p-4"
+  >
+    <div class="mono-card max-w-lg w-full overflow-hidden bg-[var(--bg-surface)]">
+      <div class="p-4 bg-[var(--bg-muted)] border-b-2 border-[var(--border-strong)] flex items-center justify-between">
+        <div>
+          <span class="font-mono-tech text-[10px] font-bold uppercase text-[var(--text-muted)]">KOREKSI DATA ANGGOTA KELUARGA</span>
+          <h3 id="editMemberModalTitle" class="font-bold text-base text-[var(--text-primary)]">Edit Baris Hasil Ekstraksi OCR</h3>
+        </div>
+        <button id="btnCloseEditModal" type="button" aria-label="Tutup dialog edit anggota" class="mono-btn-secondary px-2.5 py-1 min-h-[36px] text-xs font-mono-tech">
+          X [Esc]
+        </button>
+      </div>
+
+      <div class="p-5 space-y-3 text-xs">
+        <div>
+          <label for="modalInputName" class="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">NAMA LENGKAP</label>
+          <input id="modalInputName" type="text" class="w-full px-3 py-2 min-h-[38px] rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] font-bold text-sm text-[var(--text-primary)]" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="modalInputNik" class="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">NIK (16 DIGIT)</label>
+            <input id="modalInputNik" type="text" maxlength="16" class="w-full px-3 py-2 min-h-[38px] rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] font-mono-tech font-bold text-sm text-[var(--text-primary)]" />
+          </div>
+          <div>
+            <label for="modalInputGender" class="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">JENIS KELAMIN</label>
+            <select id="modalInputGender" class="w-full px-3 py-2 min-h-[38px] rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] font-bold text-xs text-[var(--text-primary)]">
+              <option value="LAKI-LAKI">LAKI-LAKI</option>
+              <option value="PEREMPUAN">PEREMPUAN</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="modalInputBirthDate" class="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">TANGGAL LAHIR (DD-MM-YYYY)</label>
+            <input id="modalInputBirthDate" type="text" class="w-full px-3 py-2 min-h-[38px] rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] font-mono-tech text-xs text-[var(--text-primary)]" />
+          </div>
+          <div>
+            <label for="modalInputJob" class="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">JENIS PEKERJAAN</label>
+            <input id="modalInputJob" type="text" class="w-full px-3 py-2 min-h-[38px] rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] text-xs text-[var(--text-primary)]" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="modalInputFather" class="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">NAMA AYAH</label>
+            <input id="modalInputFather" type="text" class="w-full px-3 py-2 min-h-[38px] rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] text-xs text-[var(--text-primary)]" />
+          </div>
+          <div>
+            <label for="modalInputMother" class="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">NAMA IBU</label>
+            <input id="modalInputMother" type="text" class="w-full px-3 py-2 min-h-[38px] rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] text-xs text-[var(--text-primary)]" />
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-[var(--border-light)]">
+          <button id="btnCancelEditModal" type="button" class="mono-btn-secondary px-4 py-2 min-h-[40px] text-xs">
+            Batal
+          </button>
+          <button id="btnSaveEditModal" type="button" class="mono-btn-primary px-5 py-2 min-h-[40px] text-xs">
+            Simpan Perubahan
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- TOAST NOTIFICATION                                                      -->
+  <!-- ======================================================================= -->
+  <div id="toastContainer" aria-live="polite" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ======================================================================= -->
+  <!-- FOOTER (MONOCHROME SWATCH & ATTRIBUTION)                                -->
+  <!-- ======================================================================= -->
+  <footer class="bg-[var(--bg-surface)] border-t-2 border-[var(--border-strong)] mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[var(--text-secondary)]">
+      <div>
+        <span class="font-extrabold text-[var(--text-primary)]">KK-SCANNER PRO</span>
+        <span> • Desain Monokromatik Profesional (Putih `#FFFFFF`, Abu-abu `#F4F4F5` / `#71717A`, Hitam `#09090B`)</span>
+      </div>
+      <div class="flex items-center gap-2 font-mono-tech text-[11px]">
+        <span class="px-2.5 py-1 rounded bg-white text-[#09090B] border border-[#09090B]">#FFFFFF Putih</span>
+        <span class="px-2.5 py-1 rounded bg-[#E4E4E7] text-[#09090B] border border-[#09090B]">#E4E4E7 Abu</span>
+        <span class="px-2.5 py-1 rounded bg-[#09090B] text-white border border-[#09090B]">#09090B Hitam</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ======================================================================= -->
+  <!-- APPLICATION LOGIC, 16-DIGIT NIK VALIDATOR & OCR WORKBENCH               -->
+  <!-- ======================================================================= -->
+  <script>
+    // -------------------------------------------------------------------------
+    // 1. SAMPLE KARTU KELUARGA DATASETS (PERMENDAGRI 109/2019 SCHEMA)
+    // -------------------------------------------------------------------------
+    const REGION_LOOKUP = {
+      "32": { prov: "JAWA BARAT", cities: { "71": { name: "KOTA BOGOR", districts: { "04": "BOGOR TENGAH", "01": "BOGOR SELATAN" } } } },
+      "31": { prov: "DKI JAKARTA", cities: { "74": { name: "JAKARTA SELATAN", districts: { "01": "TEBET", "04": "PASAR MINGGU" } } } }
+    };
+
+    const KK_SAMPLES = [
+      {
+        id: 0,
+        noKK: "3271041508190004",
+        kepalaKeluarga: "HENDRA WIJAYA, S.T.",
+        alamat: "JL. SURYAKENCANA NO. 48, RT 003 / RW 005, KEL. BABAKAN PASAR, KEC. BOGOR TENGAH, KOTA BOGOR, JAWA BARAT 16126",
+        rtRw: "003 / 005",
+        kelurahan: "BABAKAN PASAR",
+        kecamatan: "BOGOR TENGAH",
+        kota: "KOTA BOGOR",
+        provinsi: "JAWA BARAT",
+        kodePos: "16126",
+        tanggalTerbit: "15-08-2023",
+        zoneScores: [99.6, 99.1, 98.7, 98.2, 99.8],
+        members: [
+          {
+            no: 1,
+            nama: "HENDRA WIJAYA, S.T.",
+            nik: "3271041205850001",
+            jk: "LAKI-LAKI",
+            tempatLahir: "BOGOR",
+            tglLahir: "12-05-1985",
+            agama: "ISLAM",
+            pendidikan: "DIPLOMA IV / STRATA I",
+            pekerjaan: "KARYAWAN SWASTA",
+            golDarah: "O",
+            statusKawin: "KAWIN TERCATAT",
+            hubungan: "KEPALA KELUARGA",
+            wni: "WNI",
+            ayah: "DARMAWAN WIJAYA",
+            ibu: "SITI AMINAH"
+          },
+          {
+            no: 2,
+            nama: "NADIA PRATIWI, S.E.",
+            nik: "3271045809880002",
+            jk: "PEREMPUAN",
+            tempatLahir: "BANDUNG",
+            tglLahir: "18-09-1988",
+            agama: "ISLAM",
+            pendidikan: "DIPLOMA IV / STRATA I",
+            pekerjaan: "PEGAWAI NEGERI SIPIL",
+            golDarah: "A",
+            statusKawin: "KAWIN TERCATAT",
+            hubungan: "ISTRI",
+            wni: "WNI",
+            ayah: "BACHRUDIN PRATAMA",
+            ibu: "RATNA SARI"
+          },
+          {
+            no: 3,
+            nama: "RAKA ADITYA WIJAYA",
+            nik: "3271040411140003",
+            jk: "LAKI-LAKI",
+            tempatLahir: "BOGOR",
+            tglLahir: "04-11-2014",
+            agama: "ISLAM",
+            pendidikan: "BELUM TAMAT SD/SEDERAJAT",
+            pekerjaan: "PELAJAR / MAHASISWA",
+            golDarah: "O",
+            statusKawin: "BELUM KAWIN",
+            hubungan: "ANAK",
+            wni: "WNI",
+            ayah: "HENDRA WIJAYA",
+            ibu: "NADIA PRATIWI"
+          },
+          {
+            no: 4,
+            nama: "KIRANA PUTRI WIJAYA",
+            nik: "3271046203190001",
+            jk: "PEREMPUAN",
+            tempatLahir: "BOGOR",
+            tglLahir: "22-03-2019",
+            agama: "ISLAM",
+            pendidikan: "TIDAK / BELUM SEKOLAH",
+            pekerjaan: "BELUM / TIDAK BEKERJA",
+            golDarah: "A",
+            statusKawin: "BELUM KAWIN",
+            hubungan: "ANAK",
+            wni: "WNI",
+            ayah: "HENDRA WIJAYA",
+            ibu: "NADIA PRATIWI"
+          }
+        ]
+      },
+      {
+        id: 1,
+        noKK: "3174012010200012",
+        kepalaKeluarga: "DRS. BAMBANG SUTRISNO",
+        alamat: "JL. TEBET TIMUR DALAM RAYA NO. 19, RT 006 / RW 004, KEL. TEBET TIMUR, KEC. TEBET, JAKARTA SELATAN, DKI JAKARTA 12820",
+        rtRw: "006 / 004",
+        kelurahan: "TEBET TIMUR",
+        kecamatan: "TEBET",
+        kota: "JAKARTA SELATAN",
+        provinsi: "DKI JAKARTA",
+        kodePos: "12820",
+        tanggalTerbit: "20-10-2023",
+        zoneScores: [98.9, 98.4, 97.8, 97.5, 99.4],
+        members: [
+          {
+            no: 1,
+            nama: "DRS. BAMBANG SUTRISNO",
+            nik: "3174010802720004",
+            jk: "LAKI-LAKI",
+            tempatLahir: "SURAKARTA",
+            tglLahir: "08-02-1972",
+            agama: "ISLAM",
+            pendidikan: "DIPLOMA IV / STRATA I",
+            pekerjaan: "WIRASWASTA",
+            golDarah: "B",
+            statusKawin: "KAWIN TERCATAT",
+            hubungan: "KEPALA KELUARGA",
+            wni: "WNI",
+            ayah: "SOEPARMAN",
+            ibu: "SUMIYATI"
+          },
+          {
+            no: 2,
+            nama: "SRI WAHYUNI",
+            nik: "3174015506750002",
+            jk: "PEREMPUAN",
+            tempatLahir: "JAKARTA",
+            tglLahir: "15-06-1975",
+            agama: "ISLAM",
+            pendidikan: "SLTA / SEDERAJAT",
+            pekerjaan: "MENGURUS RUMAH TANGGA",
+            golDarah: "O",
+            statusKawin: "KAWIN TERCATAT",
+            hubungan: "ISTRI",
+            wni: "WNI",
+            ayah: "H. ABDUL ROZAK",
+            ibu: "HJ. NURHAYATI"
+          },
+          {
+            no: 3,
+            nama: "DIMAS PRASETYO",
+            nik: "3174012111010005",
+            jk: "LAKI-LAKI",
+            tempatLahir: "JAKARTA",
+            tglLahir: "21-11-2001",
+            agama: "ISLAM",
+            pendidikan: "DIPLOMA IV / STRATA I",
+            pekerjaan: "KARYAWAN SWASTA",
+            golDarah: "B",
+            statusKawin: "BELUM KAWIN",
+            hubungan: "ANAK",
+            wni: "WNI",
+            ayah: "BAMBANG SUTRISNO",
+            ibu: "SRI WAHYUNI"
+          },
+          {
+            no: 4,
+            nama: "ANISA RAHMAWATI",
+            nik: "3174014904050003",
+            jk: "PEREMPUAN",
+            tempatLahir: "JAKARTA",
+            tglLahir: "09-04-2005",
+            agama: "ISLAM",
+            pendidikan: "SLTA / SEDERAJAT",
+            pekerjaan: "PELAJAR / MAHASISWA",
+            golDarah: "O",
+            statusKawin: "BELUM KAWIN",
+            hubungan: "ANAK",
+            wni: "WNI",
+            ayah: "BAMBANG SUTRISNO",
+            ibu: "SRI WAHYUNI"
+          },
+          {
+            no: 5,
+            nama: "SUMIYATI",
+            nik: "3174014201480001",
+            jk: "PEREMPUAN",
+            tempatLahir: "SURAKARTA",
+            tglLahir: "02-01-1948",
+            agama: "ISLAM",
+            pendidikan: "SLTP / SEDERAJAT",
+            pekerjaan: "PENSIUNAN",
+            golDarah: "B",
+            statusKawin: "CERAI MATI",
+            hubungan: "ORANG TUA",
+            wni: "WNI",
+            ayah: "WIRYO SENTONO",
+            ibu: "KARTINI"
+          }
+        ]
+      },
+      {
+        id: 2,
+        noKK: "3271011001240009",
+        kepalaKeluarga: "FAJAR NUGROHO",
+        alamat: "JL. BATUTULIS NO. 12, RT 002 / RW 001, KEL. BATUTULIS, KEC. BOGOR SELATAN, KOTA BOGOR, JAWA BARAT 16133",
+        rtRw: "002 / 001",
+        kelurahan: "BATUTULIS",
+        kecamatan: "BOGOR SELATAN",
+        kota: "KOTA BOGOR",
+        provinsi: "JAWA BARAT",
+        kodePos: "16133",
+        tanggalTerbit: "10-01-2024",
+        zoneScores: [99.2, 98.5, 94.6, 97.9, 99.5],
+        members: [
+          {
+            no: 1,
+            nama: "FAJAR NUGROHO",
+            nik: "3271011907940002",
+            jk: "LAKI-LAKI",
+            tempatLahir: "BOGOR",
+            tglLahir: "19-07-1994",
+            agama: "ISLAM",
+            pendidikan: "DIPLOMA IV / STRATA I",
+            pekerjaan: "WIRASWASTA",
+            golDarah: "AB",
+            statusKawin: "KAWIN TERCATAT",
+            hubungan: "KEPALA KELUARGA",
+            wni: "WNI",
+            ayah: "AGUS NUGROHO",
+            ibu: "ENDANG SULISTYOWATI"
+          },
+          {
+            no: 2,
+            nama: "CITRA LESTARI",
+            // Intentional OCR digit anomaly (digit 7-8 is 14 instead of 54 for female born on 14th) so user can test Auto-Fix!
+            nik: "3271011408960004",
+            jk: "PEREMPUAN",
+            tempatLahir: "BOGOR",
+            tglLahir: "14-08-1996",
+            agama: "ISLAM",
+            pendidikan: "DIPLOMA III",
+            pekerjaan: "KARYAWAN SWASTA",
+            golDarah: "O",
+            statusKawin: "KAWIN TERCATAT",
+            hubungan: "ISTRI",
+            wni: "WNI",
+            ayah: "DEDI SUPRIYADI",
+            ibu: "YULIANTI"
+          }
+        ]
+      }
+    ];
+
+    // -------------------------------------------------------------------------
+    // 2. APPLICATION STATE
+    // -------------------------------------------------------------------------
+    const state = {
+      theme: "light",
+      ocrState: "ready", // 'ready' | 'loading' | 'empty' | 'error'
+      selectedSampleId: 0,
+      activeZone: "ALL", // 'ALL' | 'NOKK' | 'METADATA' | 'TABEL_ATAS' | 'TABEL_BAWAH' | 'TTE_QR'
+      tableTab: "ALL", // 'ALL' | 'UPPER' | 'LOWER'
+      memberSearch: "",
+      rotationDeg: 0,
+      binaryThreshold: false,
+      laserPaused: false,
+      editingMemberIndex: null,
+      docs: JSON.parse(JSON.stringify(KK_SAMPLES))
+    };
+
+    function getCurrentDoc() {
+      return state.docs[state.selectedSampleId] || state.docs[0];
+    }
+
+    // -------------------------------------------------------------------------
+    // 3. 16-DIGIT NIK / NOMOR KK PARSER & VALIDATOR (DUKCAPIL STANDARD)
+    // -------------------------------------------------------------------------
+    function analyze16DigitCode(rawCode, expectedGender, expectedBirthDate) {
+      const clean = String(rawCode || "").replace(/\D/g, "");
+      if (clean.length !== 16) {
+        return {
+          valid: false,
+          clean,
+          reason: `Panjang digit ${clean.length}/16 (Harus tepat 16 angka)`
+        };
+      }
+
+      const provCode = clean.slice(0, 2);
+      const cityCode = clean.slice(2, 4);
+      const distCode = clean.slice(4, 6);
+      const rawDay = parseInt(clean.slice(6, 8), 10);
+      const rawMonth = parseInt(clean.slice(8, 10), 10);
+      const rawYear = clean.slice(10, 12);
+      const seqCode = clean.slice(12, 16);
+
+      const provObj = REGION_LOOKUP[provCode];
+      const provName = provObj ? provObj.prov : `Kode Provinsi #${provCode}`;
+      const cityObj = provObj && provObj.cities ? provObj.cities[cityCode] : null;
+      const cityName = cityObj ? cityObj.name : `Kode Kab/Kota #${cityCode}`;
+      const distName = (cityObj && cityObj.districts && cityObj.districts[distCode])
+        ? cityObj.districts[distCode]
+        : `Kode Kecamatan #${distCode}`;
+
+      const isFemaleFromNik = rawDay > 40;
+      const actualDay = isFemaleFromNik ? rawDay - 40 : rawDay;
+      const dateValid = actualDay >= 1 && actualDay <= 31 && rawMonth >= 1 && rawMonth <= 12;
+
+      let genderMatch = true;
+      let correctedNik = clean;
+      let anomalyReason = "Valid (Sesuai Standar 16-Digit Dukcapil)";
+
+      if (!dateValid) {
+        genderMatch = false;
+        anomalyReason = "Format tanggal DDMMYY pada digit 7-12 di luar rentang kalender";
+      } else if (expectedGender) {
+        if (expectedGender === "PEREMPUAN" && !isFemaleFromNik) {
+          genderMatch = false;
+          const fixedDay = String(actualDay + 40).padStart(2, "0");
+          correctedNik = clean.slice(0, 6) + fixedDay + clean.slice(8);
+          anomalyReason = `Anomali OCR: Anggota PEREMPUAN wajib memiliki digit tanggal +40 (${fixedDay}, bukan ${String(rawDay).padStart(2, "0")})`;
+        } else if (expectedGender === "LAKI-LAKI" && isFemaleFromNik) {
+          genderMatch = false;
+          const fixedDay = String(actualDay).padStart(2, "0");
+          correctedNik = clean.slice(0, 6) + fixedDay + clean.slice(8);
+          anomalyReason = `Anomali OCR: Anggota LAKI-LAKI memiliki digit tanggal >40`;
+        }
+      }
+
+      return {
+        valid: dateValid && genderMatch,
+        clean,
+        provCode,
+        provName,
+        cityCode,
+        cityName,
+        distCode,
+        distName,
+        rawDayStr: clean.slice(6, 8),
+        actualDayStr: String(actualDay).padStart(2, "0"),
+        monthStr: clean.slice(8, 10),
+        yearStr: rawYear,
+        isFemaleFromNik,
+        seqCode,
+        correctedNik,
+        reason: anomalyReason
+      };
+    }
+
+    // -------------------------------------------------------------------------
+    // 4. RENDER WORKBENCH, DOCUMENT SHEET & TABLES
+    // -------------------------------------------------------------------------
+    let confidenceChartInstance = null;
+
+    function renderAll() {
+      const doc = getCurrentDoc();
+
+      // Toggle R-27 UI States
+      const loadingBox = document.getElementById("ocrStateLoadingBox");
+      const emptyBox = document.getElementById("ocrStateEmptyBox");
+      const errorBox = document.getElementById("ocrStateErrorBox");
+      const readyWorkbench = document.getElementById("ocrStateReadyWorkbench");
+
+      loadingBox.classList.add("hidden");
+      emptyBox.classList.add("hidden");
+      errorBox.classList.add("hidden");
+      readyWorkbench.classList.add("hidden");
+
+      document.querySelectorAll(".ocr-state-btn").forEach(btn => {
+        const active = btn.getAttribute("data-ocr-state") === state.ocrState;
+        btn.className = `ocr-state-btn ${active ? "mono-btn-primary" : "mono-btn-secondary"} px-2.5 py-1 min-h-[34px] text-xs`;
+      });
+
+      if (state.ocrState === "loading") {
+        loadingBox.classList.remove("hidden");
+        return;
+      }
+      if (state.ocrState === "empty") {
+        emptyBox.classList.remove("hidden");
+        return;
+      }
+      if (state.ocrState === "error") {
+        errorBox.classList.remove("hidden");
+        return;
+      }
+
+      readyWorkbench.classList.remove("hidden");
+
+      // Check if any member has a NIK anomaly
+      let anomalyCount = 0;
+      doc.members.forEach(m => {
+        const check = analyze16DigitCode(m.nik, m.jk, m.tglLahir);
+        if (!check.valid) anomalyCount++;
+      });
+
+      const statusBadge = document.getElementById("activeDocStatusBadge");
+      if (statusBadge) {
+        statusBadge.textContent = anomalyCount === 0
+          ? "STATUS: 100% VALID (TANPA ANOMALI NIK)"
+          : `STATUS: ${anomalyCount} PERINGATAN DIGIT NIK DITEMUKAN`;
+      }
+
+      // 1. Render Left KK Sheet Facsimile
+      document.getElementById("sheetNoKKText").textContent = `No. ${doc.noKK}`;
+      document.getElementById("sheetIssuedDateText").textContent = `Dikeluarkan Tanggal: ${doc.tanggalTerbit} • Kepala Dinas Dukcapil ${doc.kota}`;
+
+      document.getElementById("sheetMetadataGrid").innerHTML = `
+        <div><span class="text-zinc-500">Kepala Keluarga:</span> <strong>${doc.kepalaKeluarga}</strong></div>
+        <div><span class="text-zinc-500">Desa/Kelurahan:</span> <strong>${doc.kelurahan}</strong></div>
+        <div><span class="text-zinc-500">RT / RW:</span> <strong>${doc.rtRw}</strong></div>
+        <div><span class="text-zinc-500">Kecamatan:</span> <strong>${doc.kecamatan}</strong></div>
+        <div><span class="text-zinc-500">Kabupaten/Kota:</span> <strong>${doc.kota}</strong></div>
+        <div><span class="text-zinc-500">Provinsi:</span> <strong>${doc.provinsi} (${doc.kodePos})</strong></div>
+      `;
+
+      document.getElementById("sheetUpperTableBody").innerHTML = doc.members.map(m => `
+        <tr class="border-b border-zinc-300">
+          <td class="border border-zinc-400 px-1 py-0.5 text-center">${m.no}</td>
+          <td class="border border-zinc-400 px-1.5 py-0.5 font-bold">${m.nama}</td>
+          <td class="border border-zinc-400 px-1.5 py-0.5">${m.nik}</td>
+          <td class="border border-zinc-400 px-1 py-0.5 text-center">${m.jk === "LAKI-LAKI" ? "L" : "P"}</td>
+          <td class="border border-zinc-400 px-1.5 py-0.5">${m.tglLahir}</td>
+          <td class="border border-zinc-400 px-1.5 py-0.5">${m.pekerjaan}</td>
+        </tr>
+      `).join("");
+
+      document.getElementById("sheetLowerTableBody").innerHTML = doc.members.map(m => `
+        <tr class="border-b border-zinc-300">
+          <td class="border border-zinc-400 px-1 py-0.5 text-center">${m.no}</td>
+          <td class="border border-zinc-400 px-1.5 py-0.5">${m.statusKawin}</td>
+          <td class="border border-zinc-400 px-1.5 py-0.5 font-bold">${m.hubungan}</td>
+          <td class="border border-zinc-400 px-1.5 py-0.5">${m.ayah}</td>
+          <td class="border border-zinc-400 px-1.5 py-0.5">${m.ibu}</td>
+        </tr>
+      `).join("");
+
+      // Sync active OCR zone highlights
+      document.querySelectorAll("[data-ocr-zone]").forEach(box => {
+        const z = box.getAttribute("data-ocr-zone");
+        box.classList.toggle("active-zone", state.activeZone === "ALL" || state.activeZone === z);
+      });
+
+      document.querySelectorAll(".zone-pill-btn").forEach(btn => {
+        const z = btn.getAttribute("data-zone-btn");
+        btn.className = `zone-pill-btn ${state.activeZone === z ? "mono-btn-primary" : "mono-btn-secondary"} px-2.5 py-1 min-h-[32px] text-xs font-mono-tech`;
+      });
+
+      const zoneNames = {
+        ALL: "Zona Aktif: Semua Zona (5/5)",
+        NOKK: "Zona 01: Nomor KK (16 Digit)",
+        METADATA: "Zona 02: Kepala Keluarga & Alamat",
+        TABEL_ATAS: "Zona 03: Tabel Atas (Biodata & NIK)",
+        TABEL_BAWAH: "Zona 04: Tabel Bawah (Hubungan & Orang Tua)",
+        TTE_QR: "Zona 05: Tanda Tangan Elektronik QR"
+      };
+      document.getElementById("activeZoneIndicator").textContent = zoneNames[state.activeZone] || "";
+
+      // 2. Render Right Metadata Form Inputs
+      document.getElementById("inputNoKK").value = doc.noKK;
+      document.getElementById("inputKepalaKeluarga").value = doc.kepalaKeluarga;
+      document.getElementById("inputAlamatKK").value = doc.alamat;
+      document.getElementById("memberCountLabel").textContent = doc.members.length;
+
+      // 3. Render Extracted Family Members Table
+      renderExtractedMembersTable(doc);
+
+      // 4. Render 16-Digit Decoder & Confidence Chart & JSON
+      render16DigitDecoder(document.getElementById("customNikInput").value);
+      updateConfidenceChart(doc);
+      renderJsonOutput(doc);
+    }
+
+    function renderExtractedMembersTable(doc) {
+      const thead = document.getElementById("extractedMembersThead");
+      const tbody = document.getElementById("extractedMembersTbody");
+      const q = state.memberSearch.trim().toLowerCase();
+
+      const filtered = doc.members.filter(m => {
+        if (!q) return true;
+        return (
+          m.nama.toLowerCase().includes(q) ||
+          m.nik.includes(q) ||
+          m.pekerjaan.toLowerCase().includes(q) ||
+          m.hubungan.toLowerCase().includes(q)
+        );
+      });
+
+      if (state.tableTab === "UPPER") {
+        thead.innerHTML = `
+          <tr>
+            <th class="py-2.5 px-3">No</th>
+            <th class="py-2.5 px-3">Nama Lengkap</th>
+            <th class="py-2.5 px-3">NIK (16 Digit)</th>
+            <th class="py-2.5 px-3">TTL &amp; Gender</th>
+            <th class="py-2.5 px-3">Pendidikan &amp; Pekerjaan</th>
+            <th class="py-2.5 px-3 text-right">Aksi</th>
+          </tr>
+        `;
+      } else if (state.tableTab === "LOWER") {
+        thead.innerHTML = `
+          <tr>
+            <th class="py-2.5 px-3">No</th>
+            <th class="py-2.5 px-3">Nama Anggota</th>
+            <th class="py-2.5 px-3">Status Kawin</th>
+            <th class="py-2.5 px-3">Hubungan Keluarga</th>
+            <th class="py-2.5 px-3">Nama Ayah &amp; Ibu</th>
+            <th class="py-2.5 px-3 text-right">Aksi</th>
+          </tr>
+        `;
+      } else {
+        thead.innerHTML = `
+          <tr>
+            <th class="py-2.5 px-3">No</th>
+            <th class="py-2.5 px-3">Nama &amp; Hubungan</th>
+            <th class="py-2.5 px-3">NIK &amp; Validasi Digit</th>
+            <th class="py-2.5 px-3">Tgl Lahir / Pekerjaan</th>
+            <th class="py-2.5 px-3 text-right">Kontrol</th>
+          </tr>
+        `;
+      }
+
+      tbody.innerHTML = filtered.map((m) => {
+        const idx = doc.members.indexOf(m);
+        const check = analyze16DigitCode(m.nik, m.jk, m.tglLahir);
+        const statusPill = check.valid
+          ? `<span class="inline-block px-1.5 py-0.5 rounded bg-[var(--bg-muted)] border border-[var(--border-strong)] font-mono-tech text-[10px] font-bold">VALID</span>`
+          : `<span class="inline-block px-1.5 py-0.5 rounded bg-[var(--bg-emphasis)] text-[var(--text-inverted)] font-mono-tech text-[10px] font-bold">CEK DIGIT 7-8</span>`;
+
+        if (state.tableTab === "UPPER") {
+          return `
+            <tr class="hover:bg-[var(--bg-subtle)]">
+              <td class="py-2.5 px-3 font-mono-tech font-bold">${m.no}</td>
+              <td class="py-2.5 px-3 font-bold">${m.nama}</td>
+              <td class="py-2.5 px-3 font-mono-tech">${m.nik} <div class="mt-0.5">${statusPill}</div></td>
+              <td class="py-2.5 px-3">${m.tempatLahir}, ${m.tglLahir}<br/><span class="font-mono-tech text-[11px] text-[var(--text-muted)]">${m.jk}</span></td>
+              <td class="py-2.5 px-3">${m.pendidikan}<br/><span class="text-[var(--text-secondary)] font-semibold">${m.pekerjaan}</span></td>
+              <td class="py-2.5 px-3 text-right space-x-1">
+                <button type="button" data-decode-nik="${m.nik}" class="mono-btn-secondary px-2 py-1 min-h-[32px] text-[11px] font-mono-tech">Bedah</button>
+                <button type="button" data-edit-member="${idx}" class="mono-btn-primary px-2.5 py-1 min-h-[32px] text-[11px]">Edit</button>
+              </td>
+            </tr>
+          `;
+        }
+
+        if (state.tableTab === "LOWER") {
+          return `
+            <tr class="hover:bg-[var(--bg-subtle)]">
+              <td class="py-2.5 px-3 font-mono-tech font-bold">${m.no}</td>
+              <td class="py-2.5 px-3 font-bold">${m.nama}</td>
+              <td class="py-2.5 px-3 font-mono-tech text-[11px]">${m.statusKawin}</td>
+              <td class="py-2.5 px-3 font-bold">${m.hubungan} (${m.wni})</td>
+              <td class="py-2.5 px-3">Ayah: <strong>${m.ayah}</strong><br/>Ibu: <strong>${m.ibu}</strong></td>
+              <td class="py-2.5 px-3 text-right">
+                <button type="button" data-edit-member="${idx}" class="mono-btn-primary px-2.5 py-1 min-h-[32px] text-[11px]">Edit</button>
+              </td>
+            </tr>
+          `;
+        }
+
+        return `
+          <tr class="hover:bg-[var(--bg-subtle)]">
+            <td class="py-2.5 px-3 font-mono-tech font-bold">${m.no}</td>
+            <td class="py-2.5 px-3">
+              <span class="font-bold block text-[var(--text-primary)]">${m.nama}</span>
+              <span class="font-mono-tech text-[11px] text-[var(--text-secondary)]">${m.hubungan} • ${m.jk}</span>
+            </td>
+            <td class="py-2.5 px-3">
+              <span class="font-mono-tech font-bold block">${m.nik}</span>
+              <div class="mt-0.5">${statusPill}</div>
+            </td>
+            <td class="py-2.5 px-3">
+              <span class="font-mono-tech block">${m.tglLahir}</span>
+              <span class="text-[11px] text-[var(--text-secondary)]">${m.pekerjaan}</span>
+            </td>
+            <td class="py-2.5 px-3 text-right space-x-1">
+              <button type="button" data-decode-nik="${m.nik}" class="mono-btn-secondary px-2 py-1 min-h-[32px] text-[11px] font-mono-tech">Bedah NIK</button>
+              <button type="button" data-edit-member="${idx}" class="mono-btn-primary px-2.5 py-1 min-h-[32px] text-[11px]">Edit</button>
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      tbody.querySelectorAll("[data-decode-nik]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const nik = btn.getAttribute("data-decode-nik");
+          document.getElementById("customNikInput").value = nik;
+          render16DigitDecoder(nik);
+          document.getElementById("nikValidatorSection").scrollIntoView({ behavior: "smooth" });
+        });
+      });
+
+      tbody.querySelectorAll("[data-edit-member]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          openEditMemberModal(Number(btn.getAttribute("data-edit-member")));
+        });
+      });
+    }
+
+    function render16DigitDecoder(codeStr) {
+      const grid = document.getElementById("nikSegmentsGrid");
+      if (!grid) return;
+
+      const parsed = analyze16DigitCode(codeStr);
+      if (!parsed.clean || parsed.clean.length < 16) {
+        grid.innerHTML = `
+          <div class="sm:col-span-2 lg:col-span-5 mono-card p-4 text-center font-mono-tech text-xs">
+            Masukkan tepat 16 digit angka NIK atau Nomor KK (Saat ini: ${parsed.clean.length} digit).
+          </div>
+        `;
+        return;
+      }
+
+      const segments = [
+        {
+          range: "DIGIT 01 - 02",
+          digits: parsed.provCode,
+          title: "Kode Provinsi",
+          desc: parsed.provName
+        },
+        {
+          range: "DIGIT 03 - 04",
+          digits: parsed.cityCode,
+          title: "Kode Kab / Kota",
+          desc: parsed.cityName
+        },
+        {
+          range: "DIGIT 05 - 06",
+          digits: parsed.distCode,
+          title: "Kode Kecamatan",
+          desc: parsed.distName
+        },
+        {
+          range: "DIGIT 07 - 12",
+          digits: `${parsed.rawDayStr}-${parsed.monthStr}-${parsed.yearStr}`,
+          title: "Tanggal & Gender",
+          desc: parsed.isFemaleFromNik
+            ? `Perempuan (Tgl ${parsed.actualDayStr} + 40 = ${parsed.rawDayStr})`
+            : `Laki-laki / Terbit KK (Tgl ${parsed.actualDayStr})`
+        },
+        {
+          range: "DIGIT 13 - 16",
+          digits: parsed.seqCode,
+          title: "Nomor Urut Sistem",
+          desc: parsed.reason
+        }
+      ];
+
+      grid.innerHTML = segments.map(s => `
+        <div class="mono-card p-4 flex flex-col justify-between">
+          <div>
+            <span class="font-mono-tech text-[10px] font-bold uppercase text-[var(--text-muted)]">${s.range}</span>
+            <p class="font-mono-tech font-extrabold text-2xl text-[var(--text-primary)] mt-1">${s.digits}</p>
+            <h3 class="font-bold text-sm text-[var(--text-primary)] mt-2">${s.title}</h3>
+          </div>
+          <p class="text-xs text-[var(--text-secondary)] mt-1.5 pt-2 border-t border-[var(--border-light)] font-medium">${s.desc}</p>
+        </div>
+      `).join("");
+    }
+
+    function updateConfidenceChart(doc) {
+      const ctx = document.getElementById("ocrConfidenceChart");
+      if (!ctx || typeof Chart === "undefined") return;
+
+      const avg = (doc.zoneScores.reduce((a, b) => a + b, 0) / doc.zoneScores.length).toFixed(1);
+      const avgLabel = document.getElementById("avgOcrScoreLabel");
+      if (avgLabel) avgLabel.textContent = `${avg}% (Terverifikasi)`;
+
+      const isDark = state.theme === "dark";
+      const barPrimary = isDark ? "#FAFAFA" : "#09090B";
+      const barSecondary = isDark ? "#71717A" : "#71717A";
+      const textColor = isDark ? "#FAFAFA" : "#09090B";
+      const gridColor = isDark ? "#27272A" : "#E4E4E7";
+
+      if (confidenceChartInstance) {
+        confidenceChartInstance.destroy();
+      }
+
+      confidenceChartInstance = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: ["01. No. KK", "02. Alamat", "03. Tabel Atas", "04. Tabel Bawah", "05. QR TTE"],
+          datasets: [{
+            label: "Akurasi OCR (%)",
+            data: doc.zoneScores,
+            backgroundColor: [barPrimary, barSecondary, barPrimary, barSecondary, barPrimary],
+            borderColor: textColor,
+            borderWidth: 1.5,
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (c) => ` Akurasi Zona: ${c.raw}%`
+              }
+            }
+          },
+          scales: {
+            y: {
+              min: 85,
+              max: 100,
+              grid: { color: gridColor },
+              ticks: {
+                color: textColor,
+                font: { family: "IBM Plex Mono", size: 11 },
+                callback: (v) => v + "%"
+              }
+            },
+            x: {
+              grid: { display: false },
+              ticks: {
+                color: textColor,
+                font: { family: "IBM Plex Mono", size: 10, weight: "bold" }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderJsonOutput(doc) {
+      const pre = document.getElementById("jsonOutputPre");
+      if (!pre) return;
+
+      const payload = {
+        document_type: "KARTU_KELUARGA_RI",
+        regulation_standard: "PERMENDAGRI_109_2019",
+        nomor_kk: doc.noKK,
+        kepala_keluarga: doc.kepalaKeluarga,
+        wilayah: {
+          alamat: doc.alamat,
+          rt_rw: doc.rtRw,
+          kelurahan: doc.kelurahan,
+          kecamatan: doc.kecamatan,
+          kabupaten_kota: doc.kota,
+          provinsi: doc.provinsi,
+          kode_pos: doc.kodePos
+        },
+        tte_bsre_verified: true,
+        tanggal_penerbitan: doc.tanggalTerbit,
+        anggota_keluarga: doc.members
+      };
+
+      pre.textContent = JSON.stringify(payload, null, 2);
+    }
+
+    // -------------------------------------------------------------------------
+    // 5. MODAL EDITING & AUTO-FIX ANOMALIES
+    // -------------------------------------------------------------------------
+    function openEditMemberModal(memberIdx) {
+      const doc = getCurrentDoc();
+      const member = doc.members[memberIdx];
+      if (!member) return;
+
+      state.editingMemberIndex = memberIdx;
+      document.getElementById("modalInputName").value = member.nama;
+      document.getElementById("modalInputNik").value = member.nik;
+      document.getElementById("modalInputGender").value = member.jk;
+      document.getElementById("modalInputBirthDate").value = member.tglLahir;
+      document.getElementById("modalInputJob").value = member.pekerjaan;
+      document.getElementById("modalInputFather").value = member.ayah;
+      document.getElementById("modalInputMother").value = member.ibu;
+
+      const backdrop = document.getElementById("editMemberModalBackdrop");
+      backdrop.classList.remove("hidden");
+      backdrop.classList.add("flex");
+    }
+
+    function closeEditMemberModal() {
+      const backdrop = document.getElementById("editMemberModalBackdrop");
+      backdrop.classList.add("hidden");
+      backdrop.classList.remove("flex");
+      state.editingMemberIndex = null;
+    }
+
+    function showToast(message) {
+      const container = document.getElementById("toastContainer");
+      if (!container) return;
+      const toast = document.createElement("div");
+      toast.className = "pointer-events-auto mono-card bg-[var(--bg-emphasis)] text-[var(--text-inverted)] text-xs font-mono-tech font-bold px-4 py-3 flex items-center gap-2";
+      toast.innerHTML = `<span class="w-2 h-2 rounded-full bg-current shrink-0"></span><span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        setTimeout(() => toast.remove(), 220);
+      }, 2600);
+    }
+
+    // -------------------------------------------------------------------------
+    // 6. INITIALIZATION & EVENT LISTENERS
+    // -------------------------------------------------------------------------
+    window.addEventListener("DOMContentLoaded", () => {
+      renderAll();
+      setTimeout(() => updateConfidenceChart(getCurrentDoc()), 150);
+
+      // Theme Toggle
+      document.getElementById("btnToggleTheme").addEventListener("click", () => {
+        state.theme = state.theme === "light" ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", state.theme);
+        document.getElementById("themeToggleLabel").textContent = state.theme === "light" ? "Mode Gelap" : "Mode Terang";
+        updateConfidenceChart(getCurrentDoc());
+      });
+
+      // Rescan Trigger
+      document.getElementById("btnTriggerRescan").addEventListener("click", () => {
+        state.ocrState = "loading";
+        renderAll();
+        setTimeout(() => {
+          state.ocrState = "ready";
+          renderAll();
+          showToast("Pemindaian ulang OCR selesai: 5 zona blangko KK diekstraksi.");
+        }, 420);
+      });
+
+      // UI State Buttons (R-27)
+      document.querySelectorAll(".ocr-state-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.ocrState = btn.getAttribute("data-ocr-state");
+          renderAll();
+        });
+      });
+
+      document.getElementById("btnSkipLoading").addEventListener("click", () => {
+        state.ocrState = "ready";
+        renderAll();
+      });
+      document.getElementById("btnLoadDefaultSample").addEventListener("click", () => {
+        state.selectedSampleId = 0;
+        state.ocrState = "ready";
+        renderAll();
+      });
+      document.getElementById("btnRecoverFromError").addEventListener("click", () => {
+        state.ocrState = "ready";
+        renderAll();
+        showToast("Dokumen berhasil dipulihkan dengan kontras standar.");
+      });
+
+      // Sample Document Selector
+      document.getElementById("sampleDocSelect").addEventListener("change", (e) => {
+        state.selectedSampleId = Number(e.target.value);
+        state.ocrState = "ready";
+        document.getElementById("uploadedCustomPreviewBox").classList.add("hidden");
+        renderAll();
+        showToast(`Memuat ${e.target.options[e.target.selectedIndex].text}`);
+      });
+
+      // Custom Image Upload
+      document.getElementById("uploadKKInput").addEventListener("change", (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const box = document.getElementById("uploadedCustomPreviewBox");
+          const img = document.getElementById("uploadedCustomPreviewImg");
+          img.src = ev.target.result;
+          box.classList.remove("hidden");
+          state.ocrState = "ready";
+          renderAll();
+          showToast(`Berkas "${file.name}" berhasil dimuat ke meja pemindai OCR.`);
+        };
+        reader.readAsDataURL(file);
+      });
+
+      // Rotate Document
+      document.getElementById("btnRotateDoc").addEventListener("click", () => {
+        state.rotationDeg = (state.rotationDeg + 90) % 360;
+        document.getElementById("rotateDegLabel").textContent = `${state.rotationDeg}°`;
+        const sheet = document.getElementById("kkSheetViewport");
+        sheet.style.transform = state.rotationDeg === 0 ? "none" : `rotate(${state.rotationDeg}deg) scale(0.92)`;
+      });
+
+      // Binary Threshold B/W Filter Toggle
+      document.getElementById("btnThresholdToggle").addEventListener("click", () => {
+        state.binaryThreshold = !state.binaryThreshold;
+        document.getElementById("thresholdStateLabel").textContent = state.binaryThreshold ? "Aktif" : "Mati";
+        document.getElementById("kkSheetViewport").classList.toggle("high-contrast-threshold", state.binaryThreshold);
+      });
+
+      // Pause / Play Laser Sweep (R-39)
+      document.getElementById("btnPauseLaser").addEventListener("click", () => {
+        state.laserPaused = !state.laserPaused;
+        document.getElementById("pauseLaserLabel").textContent = state.laserPaused ? "Putar Laser" : "Jeda Laser";
+        document.getElementById("kkSheetViewport").classList.toggle("paused-motion", state.laserPaused);
+      });
+
+      // Click on OCR Zones on the KK Sheet or Zone Filter Pills
+      document.querySelectorAll("[data-ocr-zone]").forEach(box => {
+        box.addEventListener("click", () => {
+          const z = box.getAttribute("data-ocr-zone");
+          state.activeZone = state.activeZone === z ? "ALL" : z;
+          if (z === "TABEL_ATAS") state.tableTab = "UPPER";
+          if (z === "TABEL_BAWAH") state.tableTab = "LOWER";
+          syncTableTabButtons();
+          renderAll();
+        });
+      });
+
+      document.querySelectorAll(".zone-pill-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.activeZone = btn.getAttribute("data-zone-btn");
+          if (state.activeZone === "TABEL_ATAS") state.tableTab = "UPPER";
+          if (state.activeZone === "TABEL_BAWAH") state.tableTab = "LOWER";
+          if (state.activeZone === "ALL") state.tableTab = "ALL";
+          syncTableTabButtons();
+          renderAll();
+        });
+      });
+
+      // Metadata inline edits
+      document.getElementById("inputNoKK").addEventListener("input", (e) => {
+        const doc = getCurrentDoc();
+        doc.noKK = e.target.value.replace(/\D/g, "").slice(0, 16);
+        document.getElementById("sheetNoKKText").textContent = `No. ${doc.noKK}`;
+        renderJsonOutput(doc);
+      });
+
+      document.getElementById("inputKepalaKeluarga").addEventListener("input", (e) => {
+        const doc = getCurrentDoc();
+        doc.kepalaKeluarga = e.target.value;
+        renderAll();
+      });
+
+      document.getElementById("inputAlamatKK").addEventListener("input", (e) => {
+        const doc = getCurrentDoc();
+        doc.alamat = e.target.value;
+        renderJsonOutput(doc);
+      });
+
+      document.getElementById("btnInspectNoKKStructure").addEventListener("click", () => {
+        const doc = getCurrentDoc();
+        document.getElementById("customNikInput").value = doc.noKK;
+        render16DigitDecoder(doc.noKK);
+        document.getElementById("nikValidatorSection").scrollIntoView({ behavior: "smooth" });
+      });
+
+      // Table Tab Switcher (Ringkasan / Tabel Atas / Tabel Bawah)
+      function syncTableTabButtons() {
+        document.querySelectorAll(".kk-table-tab").forEach(b => {
+          const active = b.getAttribute("data-table-tab") === state.tableTab;
+          b.className = `kk-table-tab px-2.5 py-1.5 min-h-[34px] font-bold ${
+            active
+              ? "bg-[var(--bg-emphasis)] text-[var(--text-inverted)]"
+              : "bg-[var(--bg-surface)] text-[var(--text-primary)]"
+          }`;
+        });
+      }
+
+      document.querySelectorAll(".kk-table-tab").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.tableTab = btn.getAttribute("data-table-tab");
+          syncTableTabButtons();
+          renderExtractedMembersTable(getCurrentDoc());
+        });
+      });
+
+      document.getElementById("memberSearchInput").addEventListener("input", (e) => {
+        state.memberSearch = e.target.value;
+        renderExtractedMembersTable(getCurrentDoc());
+      });
+
+      // Auto-Fix NIK Anomalies Button
+      document.getElementById("btnAutoFixAnomalies").addEventListener("click", () => {
+        const doc = getCurrentDoc();
+        let fixed = 0;
+        doc.members.forEach(m => {
+          const check = analyze16DigitCode(m.nik, m.jk, m.tglLahir);
+          if (!check.valid && check.correctedNik !== m.nik) {
+            m.nik = check.correctedNik;
+            fixed++;
+          }
+        });
+        renderAll();
+        if (fixed > 0) {
+          showToast(`Berhasil mengoreksi otomatis ${fixed} anomali digit NIK (+40 perempuan).`);
+        } else {
+          showToast("Seluruh 16-digit NIK anggota keluarga sudah valid.");
+        }
+      });
+
+      // Live 16-Digit Decoder Input
+      document.getElementById("customNikInput").addEventListener("input", (e) => {
+        render16DigitDecoder(e.target.value);
+      });
+
+      // Edit Member Modal Controls
+      document.getElementById("btnCloseEditModal").addEventListener("click", closeEditMemberModal);
+      document.getElementById("btnCancelEditModal").addEventListener("click", closeEditMemberModal);
+      document.getElementById("btnSaveEditModal").addEventListener("click", () => {
+        const doc = getCurrentDoc();
+        const m = doc.members[state.editingMemberIndex];
+        if (m) {
+          m.nama = document.getElementById("modalInputName").value.trim() || m.nama;
+          m.nik = document.getElementById("modalInputNik").value.replace(/\D/g, "").slice(0, 16) || m.nik;
+          m.jk = document.getElementById("modalInputGender").value;
+          m.tglLahir = document.getElementById("modalInputBirthDate").value.trim() || m.tglLahir;
+          m.pekerjaan = document.getElementById("modalInputJob").value.trim() || m.pekerjaan;
+          m.ayah = document.getElementById("modalInputFather").value.trim() || m.ayah;
+          m.ibu = document.getElementById("modalInputMother").value.trim() || m.ibu;
+        }
+        closeEditMemberModal();
+        renderAll();
+        showToast("Data anggota keluarga berhasil diperbarui.");
+      });
+
+      document.getElementById("editMemberModalBackdrop").addEventListener("click", (e) => {
+        if (e.target.id === "editMemberModalBackdrop") closeEditMemberModal();
+      });
+
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeEditMemberModal();
+      });
+
+      // Copy JSON & Download CSV
+      document.getElementById("btnCopyJson").addEventListener("click", () => {
+        const text = document.getElementById("jsonOutputPre").textContent;
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand("copy");
+          showToast("Output JSON Kartu Keluarga berhasil disalin ke clipboard.");
+        } catch (err) {
+          showToast("Gagal menyalin JSON.");
+        }
+        ta.remove();
+      });
+
+      document.getElementById("btnDownloadCsv").addEventListener("click", () => {
+        const doc = getCurrentDoc();
+        const headers = ["No", "Nama Lengkap", "NIK", "Jenis Kelamin", "Tempat Lahir", "Tanggal Lahir", "Pendidikan", "Pekerjaan", "Status Kawin", "Hubungan Keluarga", "Nama Ayah", "Nama Ibu"];
+        const rows = doc.members.map(m => [
+          m.no,
+          `"${m.nama}"`,
+          `'${m.nik}`,
+          m.jk,
+          m.tempatLahir,
+          m.tglLahir,
+          `"${m.pendidikan}"`,
+          `"${m.pekerjaan}"`,
+          m.statusKawin,
+          m.hubungan,
+          `"${m.ayah}"`,
+          `"${m.ibu}"`
+        ].join(","));
+        const csvContent = [headers.join(","), ...rows].join("\n");
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `KK_${doc.noKK}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+        showToast(`Berkas KK_${doc.noKK}.csv berhasil diunduh.`);
+      });
+    });
+  </script>
+</body>
+</html>
