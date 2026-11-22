@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS "tbl_identitasKK" (
     provinsi VARCHAR(100) DEFAULT '',
     kode_pos VARCHAR(10) DEFAULT '',
     tanggal_dikeluarkan DATE NULL,
+    gambar VARCHAR(255) NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

@@ -10,12 +10,15 @@ export interface IdentitasKK {
   alamat: string;
   rt: string;
   rw: string;
+  rt_rw?: string;
   desa_kelurahan: string;
   kecamatan: string;
   kabupaten_kota: string;
   provinsi: string;
   kode_pos: string;
   tanggal_dikeluarkan?: string | null;
+  gambar?: string;
+  gambar_url?: string | null;
   created_at?: string;
   updated_at?: string;
   jumlah_anggota?: number;
@@ -51,6 +54,7 @@ export interface AnggotaKeluarga {
   status_perkawinan: string;
   tanggal_perkawinan?: string | null;
   status_hubungan_dalam_keluarga: string;
+  status_hubungan?: string;
   kewarganegaraan: string;
   no_paspor?: string | null;
   no_kitas_kitap?: string | null;
@@ -64,9 +68,13 @@ export interface AnggotaKeluarga {
 export interface OcrResult {
   identitas: IdentitasKK;
   anggota: AnggotaKeluarga[];
+  engine?: string;
+  catatan?: string[];
   zone_scores: number[];
   confidence: number;
   total_anggota: number;
+  gambar?: string;
+  gambar_url?: string | null;
   error?: string;
 }
 

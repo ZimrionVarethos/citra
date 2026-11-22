@@ -23,10 +23,14 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+# Local uploads & databases
+backend/uploads/*
+!backend/uploads/.gitkeep
 *.db
 *.sqlite3
 instance/
 debug_ocr/
+*.zip
 
 # Node / Next.js
 frontend/node_modules/

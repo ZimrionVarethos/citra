@@ -1,8 +1,21 @@
 from datetime import datetime, date
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
 
 db = SQLAlchemy()
+
+
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    """Enables foreign key constraint enforcement in SQLite."""
+    try:
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
+    except Exception:
+        pass
 
 
 class IdentitasKK(db.Model):
@@ -24,6 +37,7 @@ class IdentitasKK(db.Model):
     provinsi = db.Column(db.String(100), default="")
     kode_pos = db.Column(db.String(10), default="")
     tanggal_dikeluarkan = db.Column(db.Date, nullable=True)
+    gambar = db.Column(db.String(255), nullable=True)  # Filename of uploaded image
     created_at = db.Column(db.DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     updated_at = db.Column(
         db.DateTime(timezone=True),
@@ -32,7 +46,7 @@ class IdentitasKK(db.Model):
         nullable=False,
     )
 
-    # 1 KK -> many Anggota with CASCADE delete both in ORM and DB
+    # 1 KK -> many Anggota with CASCADE delete in ORM and DB
     anggota = db.relationship(
         "AnggotaKeluargaKK",
         backref="identitas_kk",
@@ -41,7 +55,15 @@ class IdentitasKK(db.Model):
         passive_deletes=True,
     )
 
-    def to_dict(self, include_anggota: bool = False) -> Dict[str, Any]:
+    @property
+    def rt_rw(self) -> str:
+        if self.rt or self.rw:
+            return f"{self.rt or '000'} / {self.rw or '000'}"
+        return ""
+
+    def to_dict(self, include_anggota: bool = False, base_url: str = "") -> Dict[str, Any]:
+        gambar_url = f"{base_url}/api/uploads/{self.gambar}" if self.gambar else None
+
         result = {
             "id": self.id,
             "no_kk": self.no_kk,
@@ -49,12 +71,15 @@ class IdentitasKK(db.Model):
             "alamat": self.alamat,
             "rt": self.rt or "",
             "rw": self.rw or "",
+            "rt_rw": self.rt_rw,
             "desa_kelurahan": self.desa_kelurahan or "",
             "kecamatan": self.kecamatan or "",
             "kabupaten_kota": self.kabupaten_kota or "",
             "provinsi": self.provinsi or "",
             "kode_pos": self.kode_pos or "",
             "tanggal_dikeluarkan": self.tanggal_dikeluarkan.isoformat() if self.tanggal_dikeluarkan else None,
+            "gambar": self.gambar or "",
+            "gambar_url": gambar_url,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "jumlah_anggota": len(self.anggota) if self.anggota else 0,
@@ -121,6 +146,7 @@ class AnggotaKeluargaKK(db.Model):
             "status_perkawinan": self.status_perkawinan or "",
             "tanggal_perkawinan": self.tanggal_perkawinan.isoformat() if self.tanggal_perkawinan else None,
             "status_hubungan_dalam_keluarga": self.status_hubungan_dalam_keluarga or "",
+            "status_hubungan": self.status_hubungan_dalam_keluarga or "",  # alias for compatibility
             "kewarganegaraan": self.kewarganegaraan or "WNI",
             "no_paspor": self.no_paspor or "",
             "no_kitas_kitap": self.no_kitas_kitap or "",

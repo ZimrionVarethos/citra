@@ -20,6 +20,14 @@ def add_anggota(kk_id: int):
 
     data = request.get_json(silent=True) or {}
     cleaned, errors = validate_anggota(data, is_update=False)
+
+    # Check NIK uniqueness
+    nik = cleaned.get("nik", "")
+    if nik:
+        existing_nik = AnggotaKeluargaKK.query.filter_by(nik=nik).first()
+        if existing_nik:
+            errors["nik"] = f"NIK {nik} sudah terdaftar pada Kartu Keluarga lain di database."
+
     if errors:
         return jsonify({
             "error": "Validasi data anggota baru gagal.",
@@ -34,6 +42,11 @@ def add_anggota(kk_id: int):
 
         new_member = AnggotaKeluargaKK(id_kk=kk_id, **cleaned)
         db.session.add(new_member)
+
+        # Jika anggota ini adalah Kepala Keluarga, sinkronkan nama di identitas KK
+        if cleaned.get("status_hubungan_dalam_keluarga") == "KEPALA KELUARGA":
+            kk.nama_kepala_keluarga = cleaned["nama_lengkap"]
+
         db.session.commit()
 
         return jsonify({
@@ -61,6 +74,16 @@ def update_anggota(anggota_id: int):
 
     data = request.get_json(silent=True) or {}
     cleaned, errors = validate_anggota(data, is_update=True)
+
+    # Check NIK uniqueness if changed
+    nik = cleaned.get("nik", "")
+    if nik and nik != member.nik:
+        existing_nik = AnggotaKeluargaKK.query.filter(
+            AnggotaKeluargaKK.nik == nik, AnggotaKeluargaKK.id != member.id
+        ).first()
+        if existing_nik:
+            errors["nik"] = f"NIK {nik} sudah dipakai oleh anggota lain."
+
     if errors:
         return jsonify({
             "error": "Validasi data anggota gagal.",
@@ -70,6 +93,10 @@ def update_anggota(anggota_id: int):
     try:
         for key, val in cleaned.items():
             setattr(member, key, val)
+
+        # Jika diubah menjadi Kepala Keluarga, sinkronkan ke Identitas KK
+        if member.status_hubungan_dalam_keluarga == "KEPALA KELUARGA":
+            member.identitas_kk.nama_kepala_keluarga = member.nama_lengkap
 
         db.session.commit()
         return jsonify({

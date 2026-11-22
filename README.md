@@ -129,6 +129,7 @@ Kedua tabel menggunakan case-sensitive quotes (`"tbl_identitasKK"` dan `"tbl_ang
 | `provinsi` | VARCHAR(100) | Nama Provinsi |
 | `kode_pos` | VARCHAR(10) | Kode pos 5 digit |
 | `tanggal_dikeluarkan` | DATE | Tanggal penerbitan KK (nullable) |
+| `gambar` | VARCHAR(255) | Nama berkas foto hasil pemindaian di folder uploads (nullable) |
 | `created_at`, `updated_at`| TIMESTAMPTZ | Waktu simpan dan modifikasi |
 
 ### 2. `tbl_anggotaKeluargaKK`

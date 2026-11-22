@@ -13,6 +13,10 @@ export default function KonfirmasiPage() {
 
   const [identitas, setIdentitas] = useState<IdentitasKK | null>(null);
   const [anggota, setAnggota] = useState<AnggotaKeluarga[]>([]);
+  const [catatan, setCatatan] = useState<string[]>([]);
+  const [gambar, setGambar] = useState<string>("");
+  const [gambarUrl, setGambarUrl] = useState<string | null>(null);
+  const [showImagePreview, setShowImagePreview] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<"ALL" | "UPPER" | "LOWER">("ALL");
   const [editingMemberIdx, setEditingMemberIdx] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -36,6 +40,15 @@ export default function KonfirmasiPage() {
       }
       setIdentitas(parsed.identitas);
       setAnggota(parsed.anggota || []);
+      if (Array.isArray(parsed.catatan)) {
+        setCatatan(parsed.catatan);
+      }
+      if (parsed.gambar) {
+        setGambar(parsed.gambar);
+      }
+      if (parsed.gambar_url) {
+        setGambarUrl(parsed.gambar_url);
+      }
     } catch {
       router.replace("/");
     }
@@ -156,8 +169,12 @@ export default function KonfirmasiPage() {
       setFieldErrors({});
 
       const res = await createKk({
-        identitas,
+        identitas: {
+          ...identitas,
+          gambar: gambar || identitas.gambar,
+        },
         anggota,
+        gambar: gambar || identitas.gambar,
       });
 
       addToast("success", res.message || "Kartu Keluarga berhasil disimpan ke database!");
@@ -209,6 +226,63 @@ export default function KonfirmasiPage() {
           </button>
         </div>
       </div>
+
+      {/* OCR DIAGNOSTICS & WARNINGS */}
+      {catatan.length > 0 && (
+        <div className="p-4 rounded border-2 border-amber-500/40 bg-amber-500/10 text-xs font-mono-tech space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              Catatan &amp; Diagnostik Mesin Pemindai ({catatan.length})
+            </span>
+            <span className="text-[10px] text-[var(--text-muted)]">Periksa kembali data yang ditandai sebelum menyimpan</span>
+          </div>
+          <ul className="list-disc pl-5 space-y-1 text-[var(--text-secondary)]">
+            {catatan.map((c, idx) => (
+              <li key={idx}>{c}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* IMAGE PREVIEW PANEL */}
+      {gambarUrl && (
+        <div className="mono-card p-4 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="font-mono-tech text-[10px] font-bold uppercase text-[var(--text-muted)]">
+                ARSIP CITRA YANG DIPINDAI
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowImagePreview(!showImagePreview)}
+                className="text-[11px] font-mono-tech px-2 py-0.5 rounded border border-[var(--border-mid)] hover:bg-[var(--bg-muted)]"
+              >
+                {showImagePreview ? "Sembunyikan Gambar ▲" : "Tampilkan Gambar ▼"}
+              </button>
+            </div>
+            <a
+              href={gambarUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-[11px] font-mono-tech underline hover:text-[var(--text-primary)]"
+            >
+              Buka Gambar Resolusi Penuh ↗
+            </a>
+          </div>
+          {showImagePreview && (
+            <div className="max-h-80 overflow-auto rounded border border-[var(--border-light)] bg-black/5 flex items-center justify-center p-2">
+              <img
+                src={gambarUrl}
+                alt="Hasil scan Kartu Keluarga"
+                className="max-h-72 object-contain w-auto mx-auto shadow-sm"
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* CARD 1: FORM EDITABLE IDENTITAS KK */}
       <div className="mono-card p-5 space-y-4">

@@ -8,7 +8,6 @@ import { checkHealth, uploadOcrImage } from "@/lib/api";
 import { compressImageClientSide, decodeNik } from "@/lib/utils";
 import { AnggotaKeluarga, IdentitasKK, OcrResult, ToastMessage } from "@/types";
 
-// Standard Sample Documents for instant zero-friction demonstration
 const SAMPLES = [
   {
     name: "Sampel #1: KK Kota Bogor (4 Anggota • Cetak HVS Tajam • Valid)",
@@ -167,15 +166,15 @@ export default function ScannerPage() {
   const [zoneScores, setZoneScores] = useState<number[]>(SAMPLES[0].zoneScores);
   const [activeZone, setActiveZone] = useState("ALL");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploadedGambar, setUploadedGambar] = useState<string>("");
+  const [catatanList, setCatatanList] = useState<string[]>([]);
+  const [engineChoice, setEngineChoice] = useState("auto");
   const [testNik, setTestNik] = useState("3271041205850001");
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
-  const [loadingNote, setLoadingNote] = useState("Sedang mengekstraksi zona tabel...");
+  const [loadingNote, setLoadingNote] = useState("Sedang memproses OCR...");
 
-  // Health ping
   useEffect(() => {
-    checkHealth().catch(() => {
-      // Backend is starting up
-    });
+    checkHealth().catch(() => {});
   }, []);
 
   const addToast = (type: "success" | "error" | "info", message: string) => {
@@ -194,8 +193,37 @@ export default function ScannerPage() {
       setAnggota(sample.anggota);
       setZoneScores(sample.zoneScores);
       setPreviewUrl(null);
+      setUploadedGambar("");
+      setCatatanList([]);
       setUiState("ready");
       addToast("info", `Memuat ${sample.name}`);
+    }
+  };
+
+  const handleLoadSampleRealFile = async () => {
+    try {
+      setUiState("loading");
+      setLoadingNote("Mengunduh citra contoh asli (contoh.jpeg)...");
+      const res = await fetch("/contoh.jpeg");
+      const blob = await res.blob();
+      const localUrl = URL.createObjectURL(blob);
+      setPreviewUrl(localUrl);
+
+      setLoadingNote("Memproses citra contoh dengan Layout-Aware OCR...");
+      const result: OcrResult = await uploadOcrImage(blob, engineChoice);
+
+      setIdentitas(result.identitas);
+      setAnggota(result.anggota);
+      setZoneScores(result.zone_scores || [95, 90, 85, 85, 95]);
+      setCatatanList(result.catatan || []);
+      setUploadedGambar(result.gambar || "");
+      if (result.gambar_url) setPreviewUrl(result.gambar_url);
+
+      setUiState("ready");
+      addToast("success", `OCR contoh selesai (${result.total_anggota} anggota terbaca).`);
+    } catch (err: any) {
+      setUiState("error");
+      addToast("error", err?.error || err?.message || "Gagal memproses gambar contoh.");
     }
   };
 
@@ -219,20 +247,18 @@ export default function ScannerPage() {
       setPreviewUrl(localUrl);
 
       // 2. Direct upload to Flask Backend
-      setLoadingNote("Mengirim ke Backend Python & Menjalankan Pipeline OCR (OpenCV + Tesseract)...");
-      const result: OcrResult = await uploadOcrImage(compressedBlob);
+      setLoadingNote("Menganalisis tata letak tabel & menjalankan OCR...");
+      const result: OcrResult = await uploadOcrImage(compressedBlob, engineChoice);
 
-      if (result.identitas && (result.identitas.no_kk || result.identitas.nama_kepala_keluarga || result.anggota.length > 0)) {
-        setIdentitas(result.identitas);
-        setAnggota(result.anggota);
-        setZoneScores(result.zone_scores || [98, 97, 96, 95, 99]);
-        setUiState("ready");
-        addToast("success", `OCR Berhasil diekstraksi! Ditemukan ${result.anggota.length} anggota keluarga.`);
-      } else {
-        // Fallback sample if image had very low DPI
-        setUiState("error");
-        addToast("error", "Citra terlalu buram atau garis tabel tidak terdeteksi. Silakan coba unggah foto yang lebih tajam.");
-      }
+      setIdentitas(result.identitas);
+      setAnggota(result.anggota);
+      setZoneScores(result.zone_scores || [98, 97, 96, 95, 99]);
+      setCatatanList(result.catatan || []);
+      setUploadedGambar(result.gambar || "");
+      if (result.gambar_url) setPreviewUrl(result.gambar_url);
+
+      setUiState("ready");
+      addToast("success", `OCR Berhasil diproses (${result.total_anggota} anggota ditemukan).`);
     } catch (err: any) {
       setUiState("error");
       const msg = err?.error || err?.message || "Gagal memproses berkas citra.";
@@ -240,9 +266,32 @@ export default function ScannerPage() {
     }
   };
 
+  const handleManualInput = async () => {
+    try {
+      setUiState("loading");
+      const result = await uploadOcrImage(null, "manual", true);
+      sessionStorage.setItem("kk_ocr_pending_data", JSON.stringify({
+        identitas: result.identitas,
+        anggota: result.anggota,
+        gambar: "",
+        gambar_url: null,
+        catatan: ["Mode formulir manual diaktifkan."],
+      }));
+      router.push("/konfirmasi");
+    } catch (err: any) {
+      setUiState("ready");
+      addToast("error", "Gagal membuka mode input manual.");
+    }
+  };
+
   const handleProceedToConfirmation = () => {
-    // Store in sessionStorage and navigate
-    const payload = { identitas, anggota };
+    const payload = {
+      identitas,
+      anggota,
+      gambar: uploadedGambar,
+      gambar_url: previewUrl,
+      catatan: catatanList,
+    };
     sessionStorage.setItem("kk_ocr_pending_data", JSON.stringify(payload));
     router.push("/konfirmasi");
   };
@@ -253,7 +302,7 @@ export default function ScannerPage() {
     <div className="pb-16">
       <Toast toasts={toasts} onDismiss={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))} />
 
-      {/* SECTION 1: EXECUTIVE TOOLBAR & R-27 UI STATE SWITCHER */}
+      {/* SECTION 1: EXECUTIVE TOOLBAR & STATUS BADGE */}
       <section className="border-b-2 border-[var(--border-strong)] bg-[var(--bg-muted)] py-5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -261,7 +310,7 @@ export default function ScannerPage() {
               <div className="flex flex-wrap items-center gap-2 text-xs font-mono-tech text-[var(--text-secondary)]">
                 <span>DOKUMEN KEPENDUDUKAN RI</span>
                 <span>/</span>
-                <span>FORMULIR BLANGKO HVS A4 PUTIH</span>
+                <span>LAYOUT OCR SPASIAL PERMENDAGRI 109/2019</span>
                 <span>/</span>
                 <span className="font-bold text-[var(--text-primary)] underline">
                   STATUS: {uiState.toUpperCase()}
@@ -272,49 +321,29 @@ export default function ScannerPage() {
               </h1>
             </div>
 
-            {/* UI State Controls */}
-            <div className="mono-card p-2 bg-[var(--bg-surface)] shrink-0">
-              <span className="block text-[10px] font-mono-tech font-bold uppercase text-[var(--text-muted)] mb-1">
-                Status Antarmuka Pemindai:
+            {/* Engine & Mode Picker */}
+            <div className="mono-card p-2 bg-[var(--bg-surface)] shrink-0 flex flex-wrap items-center gap-2 text-xs font-mono-tech">
+              <span className="font-bold uppercase text-[var(--text-muted)] text-[11px]">
+                Engine OCR:
               </span>
-              <div role="group" className="flex flex-wrap gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setUiState("ready")}
-                  className={`px-2.5 py-1 text-xs rounded ${
-                    uiState === "ready" ? "mono-btn-primary" : "mono-btn-secondary"
-                  }`}
-                >
-                  Hasil OCR (Ready)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setUiState("loading")}
-                  className={`px-2.5 py-1 text-xs rounded ${
-                    uiState === "loading" ? "mono-btn-primary" : "mono-btn-secondary"
-                  }`}
-                >
-                  Proses Scan (Loading)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setUiState("empty")}
-                  className={`px-2.5 py-1 text-xs rounded ${
-                    uiState === "empty" ? "mono-btn-primary" : "mono-btn-secondary"
-                  }`}
-                >
-                  Kosong (Empty)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setUiState("error")}
-                  className={`px-2.5 py-1 text-xs rounded ${
-                    uiState === "error" ? "mono-btn-primary" : "mono-btn-secondary"
-                  }`}
-                >
-                  Gagal (Error)
-                </button>
-              </div>
+              <select
+                value={engineChoice}
+                onChange={(e) => setEngineChoice(e.target.value)}
+                className="px-2 py-1 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] font-bold text-xs"
+              >
+                <option value="auto">Otomatis (Lokal / Claude jika ada)</option>
+                <option value="lokal">Lokal (Tesseract + Spatial Layout)</option>
+                <option value="claude">Claude Vision (Butuh API Key)</option>
+              </select>
+
+              <button
+                type="button"
+                onClick={handleManualInput}
+                className="mono-btn-secondary px-2.5 py-1 text-xs"
+                title="Buka form kosong tanpa memindai gambar"
+              >
+                Isi Manual
+              </button>
             </div>
           </div>
         </div>
@@ -325,9 +354,9 @@ export default function ScannerPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
           {/* Top Document Control Bar */}
           <div className="mono-card p-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-            <div className="md:col-span-6">
+            <div className="md:col-span-5">
               <label className="block text-xs font-bold uppercase text-[var(--text-secondary)] mb-1">
-                1. Pilih Sampel Dokumen Kartu Keluarga:
+                1. Pilih Sampel Dokumen Terverifikasi:
               </label>
               <select
                 value={selectedSampleIdx}
@@ -342,50 +371,69 @@ export default function ScannerPage() {
               </select>
             </div>
 
-            <div className="md:col-span-6 flex flex-col sm:flex-row gap-2">
+            <div className="md:col-span-7 flex flex-wrap gap-2">
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/jpeg,image/png,image/webp"
+                accept="image/jpeg,image/png,image/webp,image/bmp"
                 onChange={handleFileUpload}
                 className="hidden"
               />
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex-1 mono-btn-secondary px-4 py-2 min-h-[42px] text-xs font-bold flex items-center justify-center gap-2"
+                className="flex-1 mono-btn-secondary px-3 py-2 min-h-[42px] text-xs font-bold flex items-center justify-center gap-1.5"
               >
                 <span>↑ Unggah Foto KK (JPG/PNG)</span>
               </button>
               <button
                 type="button"
+                onClick={handleLoadSampleRealFile}
+                className="mono-btn-secondary px-3 py-2 min-h-[42px] text-xs font-bold flex items-center justify-center gap-1.5"
+                title="Gunakan contoh.jpeg untuk menguji langsung pipeline OCR"
+              >
+                <span>Contoh Citra Nyata</span>
+              </button>
+              <button
+                type="button"
                 onClick={handleProceedToConfirmation}
-                className="mono-btn-primary px-5 py-2 min-h-[42px] text-xs sm:text-sm font-bold flex items-center justify-center gap-2"
+                className="mono-btn-primary px-4 py-2 min-h-[42px] text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5"
               >
                 <span>Lanjut ke Form Konfirmasi →</span>
               </button>
             </div>
           </div>
 
+          {/* Alert Catatan OCR jika ada */}
+          {catatanList.length > 0 && (
+            <div className="mono-card p-4 bg-amber-50/60 dark:bg-amber-950/20 border-2 border-amber-600 text-xs font-mono-tech space-y-1">
+              <span className="font-bold text-amber-800 dark:text-amber-300 block uppercase">
+                Catatan Hasil Pembacaan OCR:
+              </span>
+              <ul className="list-disc list-inside space-y-0.5 text-amber-900 dark:text-amber-200">
+                {catatanList.map((c, i) => (
+                  <li key={i}>{c}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {/* STATE: LOADING */}
           {uiState === "loading" && (
             <div className="mono-card p-12 text-center space-y-4 my-4" role="status">
               <div className="w-12 h-12 mx-auto border-4 border-[var(--border-light)] border-t-[var(--border-strong)] rounded-full animate-spin" />
               <h2 className="font-bold text-xl text-[var(--text-primary)]">
-                Sedang Mengekstraksi Zona Tabel &amp; Memvalidasi 16-Digit NIK...
+                Sedang Membaca Dokumen &amp; Mengurai Struktur Tabel KK...
               </h2>
               <p className="text-sm text-[var(--text-secondary)] max-w-md mx-auto">
                 {loadingNote}
-              </p>
-              <p className="text-[11px] font-mono-tech text-[var(--text-muted)]">
-                *Render Free Tier cold-start membutuhkan waktu ~30-60 detik saat pertama kali dipanggil.
               </p>
               <button
                 type="button"
                 onClick={() => setUiState("ready")}
                 className="mono-btn-secondary px-4 py-2 text-xs"
               >
-                Tampilkan Pratinjau Siap
+                Tampilkan Pratinjau
               </button>
             </div>
           )}
@@ -400,7 +448,7 @@ export default function ScannerPage() {
                 Belum Ada Dokumen Kartu Keluarga yang Dimuat
               </h2>
               <p className="text-sm text-[var(--text-secondary)] max-w-md mx-auto">
-                Pilih salah satu sampel dokumen Kartu Keluarga pada bilah kontrol di atas atau unggah foto lembar KK Anda.
+                Pilih salah satu sampel dokumen di atas atau unggah foto Kartu Keluarga Anda.
               </p>
               <button
                 type="button"
@@ -422,22 +470,22 @@ export default function ScannerPage() {
                 Citra Terlalu Buram atau Garis Tabel Tidak Terdeteksi
               </h2>
               <p className="text-sm text-[var(--text-secondary)] max-w-md mx-auto">
-                Pastikan dokumen Kartu Keluarga difoto secara tegak lurus dengan pencahayaan merata, atau gunakan salah satu sampel uji yang tersedia.
+                Pastikan dokumen difoto dengan pencahayaan merata atau gunakan tombol &quot;Contoh Citra Nyata&quot; untuk menguji sistem.
               </p>
               <button
                 type="button"
                 onClick={() => handleSelectSample(0)}
                 className="mono-btn-primary px-5 py-2.5 text-xs sm:text-sm"
               >
-                Pulihkan dengan Sampel KK
+                Pulihkan dengan Sampel
               </button>
             </div>
           )}
 
-          {/* STATE: READY (SPLIT WORKBENCH) */}
+          {/* STATE: READY */}
           {uiState === "ready" && (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              {/* LEFT 6 COLS: Interactive Document Sheet Viewport */}
+              {/* LEFT 6 COLS: Document Facsimile & Real Image Toggle */}
               <div className="lg:col-span-6">
                 <InteractiveKkSheet
                   identitas={identitas}
@@ -449,9 +497,9 @@ export default function ScannerPage() {
                 />
               </div>
 
-              {/* RIGHT 6 COLS: Structured Extraction & Verification Panel */}
+              {/* RIGHT 6 COLS: Metadata & Members Preview */}
               <div className="lg:col-span-6 space-y-5">
-                {/* Card 1: Identitas Header */}
+                {/* Header Metadata Card */}
                 <div className="mono-card p-5 space-y-4">
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[var(--border-strong)] pb-3">
                     <div>
@@ -463,7 +511,7 @@ export default function ScannerPage() {
                       </h2>
                     </div>
                     <span className="font-mono-tech text-xs font-bold px-2 py-0.5 rounded bg-[var(--bg-muted)] border border-[var(--border-mid)]">
-                      {identitas.no_kk?.length === 16 ? "✓ 16 DIGIT VALID" : "⚠ NO KK INVALID"}
+                      {identitas.no_kk?.length === 16 ? "✓ 16 DIGIT VALID" : "⚠ NO KK PERLU DICEK"}
                     </span>
                   </div>
 
@@ -486,7 +534,7 @@ export default function ScannerPage() {
                     </div>
                     <div className="sm:col-span-2">
                       <span className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
-                        ALAMAT LENGKAP &amp; DOMISILI
+                        ALAMAT DOMISILI LENGKAP
                       </span>
                       <div className="px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] font-medium text-xs text-[var(--text-primary)]">
                         {identitas.alamat || "-"}, RT {identitas.rt || "000"} / RW {identitas.rw || "000"},{" "}
@@ -497,7 +545,7 @@ export default function ScannerPage() {
                   </div>
                 </div>
 
-                {/* Card 2: Daftar Anggota Keluarga */}
+                {/* Members Card */}
                 <div className="mono-card p-5 space-y-4">
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[var(--border-strong)] pb-3">
                     <div>
@@ -514,7 +562,7 @@ export default function ScannerPage() {
                       onClick={handleProceedToConfirmation}
                       className="mono-btn-primary px-4 py-1.5 text-xs font-mono-tech"
                     >
-                      Buka di Form Konfirmasi →
+                      Buka Form Konfirmasi →
                     </button>
                   </div>
 
@@ -531,24 +579,32 @@ export default function ScannerPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[var(--border-light)] font-mono-tech">
-                        {anggota.map((m, idx) => (
-                          <tr key={idx} className="hover:bg-[var(--bg-subtle)]">
-                            <td className="p-2 font-bold">{m.no_urut || idx + 1}</td>
-                            <td className="p-2 font-bold">{m.nama_lengkap}</td>
-                            <td className="p-2">{m.nik}</td>
-                            <td className="p-2">{m.jenis_kelamin?.startsWith("P") ? "P" : "L"}</td>
-                            <td className="p-2 text-[var(--text-secondary)]">
-                              {m.status_hubungan_dalam_keluarga}
+                        {anggota.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="p-4 text-center text-zinc-400 italic">
+                              (Belum ada data anggota keluarga terbaca)
                             </td>
                           </tr>
-                        ))}
+                        ) : (
+                          anggota.map((m, idx) => (
+                            <tr key={idx} className="hover:bg-[var(--bg-subtle)]">
+                              <td className="p-2 font-bold">{m.no_urut || idx + 1}</td>
+                              <td className="p-2 font-bold">{m.nama_lengkap}</td>
+                              <td className="p-2">{m.nik}</td>
+                              <td className="p-2">{m.jenis_kelamin?.startsWith("P") ? "P" : "L"}</td>
+                              <td className="p-2 text-[var(--text-secondary)] font-medium">
+                                {m.status_hubungan_dalam_keluarga || m.status_hubungan || "-"}
+                              </td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>
 
                   <div className="pt-2 flex items-center justify-between">
                     <span className="text-[11px] font-mono-tech text-[var(--text-muted)]">
-                      Lakukan pengeditan dan validasi lengkap pada Form Konfirmasi sebelum menyimpan ke database.
+                      Lakukan pengeditan dan koreksi kolom pada Form Konfirmasi sebelum menyimpan ke database.
                     </span>
                     <button
                       type="button"
@@ -565,7 +621,7 @@ export default function ScannerPage() {
         </div>
       </section>
 
-      {/* SECTION 3: 16-DIGIT NIK & KK STRUCTURAL DECODER */}
+      {/* SECTION 3: 16-DIGIT DECODER */}
       <section className="py-10 border-b-2 border-[var(--border-strong)] bg-[var(--bg-muted)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -595,24 +651,13 @@ export default function ScannerPage() {
             </div>
           </div>
 
-          {/* 5-Segment Breakdown Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <div className="mono-card p-4 space-y-1">
               <span className="text-[10px] font-mono-tech font-bold uppercase text-[var(--text-muted)]">
                 DIGIT 1-2: PROVINSI
               </span>
               <p className="font-mono-tech font-bold text-xl">{decodedNikTest.prov_code || "--"}</p>
-              <p className="text-xs text-[var(--text-secondary)]">
-                {decodedNikTest.prov_code === "32"
-                  ? "JAWA BARAT"
-                  : decodedNikTest.prov_code === "31"
-                  ? "DKI JAKARTA"
-                  : decodedNikTest.prov_code === "33"
-                  ? "JAWA TENGAH"
-                  : decodedNikTest.prov_code === "35"
-                  ? "JAWA TIMUR"
-                  : "KODE PROVINSI RI"}
-              </p>
+              <p className="text-xs text-[var(--text-secondary)]">KODE PROVINSI RI</p>
             </div>
 
             <div className="mono-card p-4 space-y-1">
@@ -647,58 +692,6 @@ export default function ScannerPage() {
               </span>
               <p className="font-mono-tech font-bold text-xl">{decodedNikTest.sequence || "----"}</p>
               <p className="text-xs text-[var(--text-secondary)]">REGISTRASI HARIAN</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 4: SPESIFIKASI STANDAR BLANGKO */}
-      <section className="py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-          <div>
-            <span className="font-mono-tech text-xs font-bold uppercase text-[var(--text-muted)] block mb-1">
-              REFERENSI REGULASI ADMINISTRASI KEPENDUDUKAN
-            </span>
-            <h2 className="font-extrabold text-2xl text-[var(--text-primary)]">
-              Spesifikasi Standar Blangko Kartu Keluarga &amp; Atribut OCR
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="mono-card p-5 space-y-2">
-              <span className="px-2 py-0.5 rounded font-mono-tech text-xs font-bold bg-[var(--bg-emphasis)] text-[var(--text-inverted)]">
-                PERMENDAGRI NO. 109 TAHUN 2019
-              </span>
-              <h3 className="font-bold text-base text-[var(--text-primary)] pt-1">
-                Blangko Kertas Putih HVS A4 80gr
-              </h3>
-              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                Pencetakan Kartu Keluarga menggunakan kertas HVS putih ukuran A4 80 gram yang mempermudah binerisasi kontras hitam-putih pada mesin OCR tanpa distorsi warna.
-              </p>
-            </div>
-
-            <div className="mono-card p-5 space-y-2">
-              <span className="px-2 py-0.5 rounded font-mono-tech text-xs font-bold bg-[var(--bg-emphasis)] text-[var(--text-inverted)]">
-                STRUKTUR 17 KOLOM TABEL KK
-              </span>
-              <h3 className="font-bold text-base text-[var(--text-primary)] pt-1">
-                Pemetaan Tabel Atas &amp; Tabel Bawah
-              </h3>
-              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                Tabel Atas memuat 10 kolom identitas dasar, sedangkan Tabel Bawah memuat 7 kolom relasi keluarga, kewarganegaraan, dan nama orang tua yang digabungkan otomatis berdasarkan nomor urut.
-              </p>
-            </div>
-
-            <div className="mono-card p-5 space-y-2">
-              <span className="px-2 py-0.5 rounded font-mono-tech text-xs font-bold bg-[var(--bg-emphasis)] text-[var(--text-inverted)]">
-                VALIDASI SILANG 16 DIGIT
-              </span>
-              <h3 className="font-bold text-base text-[var(--text-primary)] pt-1">
-                Koreksi Otomatis Angka Hasil OCR
-              </h3>
-              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                Memeriksa digit ke-7 dan ke-8 pada NIK anggota perempuan bernilai `Tanggal Lahir + 40` untuk memvalidasi jenis kelamin dan tanggal lahir bahkan jika OCR sempat membaca karakter buram.
-              </p>
             </div>
           </div>
         </div>

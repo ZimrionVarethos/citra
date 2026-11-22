@@ -27,6 +27,7 @@ export default function KkDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"ALL" | "UPPER" | "LOWER">("ALL");
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [showOriginalImage, setShowOriginalImage] = useState(false);
 
   // Modals state
   const [isEditIdentitasOpen, setIsEditIdentitasOpen] = useState(false);
@@ -269,6 +270,44 @@ export default function KkDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* BERKAS ASLI PEMINDAIAN */}
+      {kkData.gambar_url && (
+        <div className="mono-card p-4 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="font-mono-tech text-[10px] font-bold uppercase text-[var(--text-muted)]">
+                ARSIP BERKAS ASLI PEMINDAIAN
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowOriginalImage(!showOriginalImage)}
+                className="text-[11px] font-mono-tech px-2.5 py-1 rounded border border-[var(--border-mid)] hover:bg-[var(--bg-muted)] transition-colors"
+              >
+                {showOriginalImage ? "Sembunyikan Berkas ▲" : "Lihat Berkas Foto Kartu Keluarga ▼"}
+              </button>
+            </div>
+            <a
+              href={kkData.gambar_url.startsWith("http") ? kkData.gambar_url : `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"}${kkData.gambar_url}`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-[11px] font-mono-tech underline hover:text-[var(--text-primary)]"
+            >
+              Buka Gambar Resolusi Penuh ↗
+            </a>
+          </div>
+
+          {showOriginalImage && (
+            <div className="max-h-96 overflow-auto rounded border border-[var(--border-light)] bg-black/5 flex items-center justify-center p-2">
+              <img
+                src={kkData.gambar_url.startsWith("http") ? kkData.gambar_url : `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"}${kkData.gambar_url}`}
+                alt={`Arsip Foto KK ${kkData.no_kk}`}
+                className="max-h-88 object-contain w-auto mx-auto shadow-sm"
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* CARD 2: TABEL ANGGOTA KELUARGA */}
       <div className="mono-card p-5 space-y-4">
