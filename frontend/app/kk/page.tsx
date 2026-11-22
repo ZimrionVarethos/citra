@@ -104,12 +104,12 @@ export default function KkListPage() {
       {/* Header bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-[var(--border-strong)] pb-4">
         <div>
-          <span className="font-mono-tech text-xs font-bold uppercase text-[var(--text-muted)] block mb-1">
-            DATABASE KEPENDUDUKAN LOKAL
-          </span>
           <h1 className="font-extrabold text-2xl text-[var(--text-primary)]">
-            Penelusuran Data Kartu Keluarga
+            Data Kartu Keluarga Tersimpan
           </h1>
+          <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+            Daftar Kartu Keluarga yang telah tersimpan di database lokal.
+          </p>
         </div>
 
         <Link

@@ -212,9 +212,6 @@ export default function KkDetailPage() {
       <div className="mono-card p-5 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[var(--border-strong)] pb-3">
           <div>
-            <span className="font-mono-tech text-[10px] font-bold uppercase text-[var(--text-muted)]">
-              IDENTITAS WILAYAH &amp; KEPALA KELUARGA
-            </span>
             <h2 className="font-bold text-lg text-[var(--text-primary)]">
               {kkData.nama_kepala_keluarga}
             </h2>
@@ -313,9 +310,6 @@ export default function KkDetailPage() {
       <div className="mono-card p-5 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-[var(--border-strong)] pb-3">
           <div>
-            <span className="font-mono-tech text-[10px] font-bold uppercase text-[var(--text-muted)]">
-              TABEL KEPENDUDUKAN LENGKAP
-            </span>
             <h2 className="font-bold text-lg text-[var(--text-primary)]">
               Daftar Anggota Keluarga ({kkData.anggota?.length || 0} Jiwa)
             </h2>

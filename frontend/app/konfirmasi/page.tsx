@@ -288,10 +288,7 @@ export default function KonfirmasiPage() {
       <div className="mono-card p-5 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[var(--border-strong)] pb-3">
           <div>
-            <span className="font-mono-tech text-[10px] font-bold uppercase text-[var(--text-muted)]">
-              BLANGKO DOKUMEN KEPENDUDUKAN (ZONA 01 &amp; 02)
-            </span>
-            <h2 className="font-bold text-lg text-[var(--text-primary)]">
+            <h2 className="font-bold text-base text-[var(--text-primary)]">
               1. Identitas Kepala Keluarga &amp; Alamat Domisili
             </h2>
           </div>
@@ -456,10 +453,7 @@ export default function KonfirmasiPage() {
       <div className="mono-card p-5 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-[var(--border-strong)] pb-3">
           <div>
-            <span className="font-mono-tech text-[10px] font-bold uppercase text-[var(--text-muted)]">
-              TABEL ANGGOTA KELUARGA (ZONA 03 &amp; 04)
-            </span>
-            <h2 className="font-bold text-lg text-[var(--text-primary)]">
+            <h2 className="font-bold text-base text-[var(--text-primary)]">
               2. Daftar Anggota Keluarga ({anggota.length} Orang)
             </h2>
           </div>

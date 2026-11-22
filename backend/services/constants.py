@@ -77,6 +77,29 @@ BLOOD_TYPE_OPTIONS: List[str] = [
 # Standard Citizenship options
 CITIZENSHIP_OPTIONS: List[str] = ["WNI", "WNA"]
 
+# Standard Occupation options
+OCCUPATION_OPTIONS: List[str] = [
+    "BELUM/TIDAK BEKERJA",
+    "MENGURUS RUMAH TANGGA",
+    "PELAJAR/MAHASISWA",
+    "PENSIUNAN",
+    "PEGAWAI NEGERI SIPIL",
+    "TENTARA NASIONAL INDONESIA",
+    "KEPOLISIAN RI",
+    "PETANI/PEKEBUN",
+    "NELAYAN/PERIKANAN",
+    "KARYAWAN SWASTA",
+    "KARYAWAN BUMN",
+    "WIRASWASTA",
+    "BURUH HARIAN LEPAS",
+    "GURU",
+    "DOSEN",
+    "PEDAGANG",
+    "SOPIR",
+    "TUKANG BANGUNAN",
+    "LAINNYA",
+]
+
 # Common OCR digit confusion map (character -> digit)
 CHAR_TO_DIGIT_MAP: Dict[str, str] = {
     "O": "0",

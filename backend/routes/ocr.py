@@ -1,7 +1,7 @@
 import logging
 import os
 from flask import Blueprint, current_app, jsonify, request, send_from_directory
-from services.ocr_service import OcrPipeline, is_claude_available
+from services.ocr_service import OcrPipeline
 from services.preprocessing import validate_image_bytes
 
 ocr_bp = Blueprint("ocr", __name__)
@@ -13,9 +13,8 @@ def health_check():
     """Health check endpoint for checking local or server uptime."""
     return jsonify({
         "status": "healthy",
-        "service": "KK-SCANNER PRO OCR Backend",
-        "claude_available": is_claude_available(),
-        "version": "1.1.0"
+        "service": "KK Scanner OCR Backend",
+        "version": "1.2.0"
     }), 200
 
 
