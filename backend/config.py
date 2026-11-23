@@ -46,4 +46,3 @@ class Config:
     # OCR Settings
     DEBUG_OCR = os.getenv("DEBUG_OCR", "0").lower() in ("1", "true", "yes")
     TESSERACT_CMD = os.getenv("TESSERACT_CMD", "")
-    KK_CLAUDE_MODEL = os.getenv("KK_CLAUDE_MODEL", "claude-opus-5-5")
