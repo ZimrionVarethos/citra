@@ -24,7 +24,6 @@ export default function KkListPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-  // Modals state
   const [editingKk, setEditingKk] = useState<IdentitasKK | null>(null);
   const [deletingKk, setDeletingKk] = useState<IdentitasKK | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -37,7 +36,6 @@ export default function KkListPage() {
     }, 4500);
   };
 
-  // Debounce search input
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedQuery(searchQuery);
@@ -101,7 +99,6 @@ export default function KkListPage() {
     <div className="py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
       <Toast toasts={toasts} onDismiss={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))} />
 
-      {/* Header bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--border-light)] pb-5">
         <div>
           <h1 className="font-extrabold text-2xl text-[var(--text-primary)] tracking-tight">
@@ -123,7 +120,6 @@ export default function KkListPage() {
         </Link>
       </div>
 
-      {/* Search Input Bar */}
       <div className="mono-card p-3 sm:p-4 flex flex-col sm:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
           <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--text-muted)]">
@@ -155,7 +151,6 @@ export default function KkListPage() {
         )}
       </div>
 
-      {/* Table Container */}
       <div className="mono-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
@@ -252,7 +247,6 @@ export default function KkListPage() {
           </table>
         </div>
 
-        {/* Pagination Footer */}
         {pagination.total_pages > 1 && (
           <div className="p-3.5 bg-[var(--bg-subtle)] border-t border-[var(--border-light)] flex flex-wrap items-center justify-between gap-3 text-xs font-mono-tech">
             <span className="text-[var(--text-secondary)]">
@@ -286,7 +280,6 @@ export default function KkListPage() {
         )}
       </div>
 
-      {/* Edit Modal */}
       <EditIdentitasModal
         isOpen={!!editingKk}
         identitas={editingKk}
@@ -294,7 +287,6 @@ export default function KkListPage() {
         onSave={handleSaveIdentitas}
       />
 
-      {/* Delete Modal */}
       <ConfirmDeleteModal
         isOpen={!!deletingKk}
         title="Hapus Kartu Keluarga"

@@ -3,44 +3,27 @@ import cv2
 import numpy as np
 from typing import Optional, Tuple
 
-
 def validate_image_bytes(image_bytes: bytes) -> Tuple[bool, str]:
-    """
-    Validates magic bytes for JPG/JPEG, PNG, and WebP images.
-    Returns (is_valid, mime_or_error_msg).
-    """
     if not image_bytes or len(image_bytes) < 12:
         return False, "File gambar kosong atau terlalu kecil."
 
-    # JPEG / JPG
     if image_bytes[:3] == b"\xff\xd8\xff":
         return True, "image/jpeg"
 
-    # PNG
     if image_bytes[:8] == b"\x89PNG\r\n\x1a\n":
         return True, "image/png"
 
-    # WebP
     if image_bytes[:4] == b"RIFF" and image_bytes[8:12] == b"WEBP":
         return True, "image/webp"
 
     return False, "Format file tidak didukung. Unggah gambar JPG atau PNG."
 
-
 def decode_image(image_bytes: bytes) -> Optional[np.ndarray]:
-    """
-    Decodes in-memory image bytes into an OpenCV BGR numpy array without touching disk.
-    """
     nparr = np.frombuffer(image_bytes, np.uint8)
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     return image
 
-
 def resize_image_max_dim(image: np.ndarray, max_dim: int = 2000) -> np.ndarray:
-    """
-    Resizes image proportionally so that the longest side does not exceed max_dim.
-    Saves significant memory and CPU time (vital for 512 MB RAM environments).
-    """
     h, w = image.shape[:2]
     longest = max(h, w)
     if longest <= max_dim:
@@ -51,39 +34,27 @@ def resize_image_max_dim(image: np.ndarray, max_dim: int = 2000) -> np.ndarray:
     new_h = int(h * scale)
     return cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_AREA)
 
-
 def to_grayscale(image: np.ndarray) -> np.ndarray:
-    """Converts BGR image to single-channel grayscale."""
     if len(image.shape) == 2:
         return image
     return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-
 def lightweight_denoise(gray: np.ndarray) -> np.ndarray:
-    """Applies lightweight Gaussian blur to remove high-frequency noise."""
     return cv2.GaussianBlur(gray, (3, 3), 0)
 
-
 def deskew(gray: np.ndarray) -> Tuple[np.ndarray, float]:
-    """
-    Detects skew angle in degrees and rotates image to upright position.
-    """
-    # Invert and threshold to find text orientation
     thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
     coords = np.column_stack(np.where(thresh > 0))
     if len(coords) < 100:
         return gray, 0.0
 
-    # Calculate min area rectangle enclosing all non-zero pixels
     angle = cv2.minAreaRect(coords)[-1]
 
-    # Adjust angle to [-45, 45]
     if angle < -45:
         angle = -(90 + angle)
     elif angle > 45:
         angle = 90 - angle
 
-    # Ignore micro-rotations below 0.4 degrees
     if abs(angle) < 0.4 or abs(angle) > 30:
         return gray, 0.0
 
@@ -95,9 +66,7 @@ def deskew(gray: np.ndarray) -> Tuple[np.ndarray, float]:
     )
     return rotated, angle
 
-
 def order_points(pts: np.ndarray) -> np.ndarray:
-    """Orders 4 coordinates in: top-left, top-right, bottom-right, bottom-left."""
     rect = np.zeros((4, 2), dtype="float32")
     s = pts.sum(axis=1)
     rect[0] = pts[np.argmin(s)]
@@ -108,20 +77,13 @@ def order_points(pts: np.ndarray) -> np.ndarray:
     rect[3] = pts[np.argmax(diff)]
     return rect
 
-
 def detect_and_warp_perspective(color_img: np.ndarray, gray: np.ndarray) -> Tuple[np.ndarray, np.ndarray, bool]:
-    """
-    Attempts to detect the 4-corner rectangular boundary of the Kartu Keluarga paper
-    and apply perspective warping to get a top-down planar view.
-    """
     h, w = gray.shape[:2]
     total_area = h * w
 
-    # Edge detection
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
     edged = cv2.Canny(blurred, 40, 150)
 
-    # Dilate edges slightly to close gaps
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
     dilated = cv2.dilate(edged, kernel, iterations=1)
 
@@ -130,7 +92,6 @@ def detect_and_warp_perspective(color_img: np.ndarray, gray: np.ndarray) -> Tupl
 
     for c in contours:
         area = cv2.contourArea(c)
-        # Kartu Keluarga sheet should occupy at least 30% of the camera frame
         if area < total_area * 0.30:
             continue
 
@@ -150,7 +111,6 @@ def detect_and_warp_perspective(color_img: np.ndarray, gray: np.ndarray) -> Tupl
             height_b = np.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
             max_height = max(int(height_a), int(height_b))
 
-            # Discard extreme aspect ratios
             if max_width < 200 or max_height < 200:
                 continue
 
@@ -168,22 +128,14 @@ def detect_and_warp_perspective(color_img: np.ndarray, gray: np.ndarray) -> Tupl
 
     return color_img, gray, False
 
-
 def binarize(gray: np.ndarray) -> np.ndarray:
-    """
-    Creates high-contrast binary image (black text on pure white background)
-    using adaptive Gaussian thresholding, ideal for OCR text reading.
-    """
-    # Otsu thresholding after subtle bilateral filtering
     filtered = cv2.bilateralFilter(gray, 7, 50, 50)
     binary = cv2.adaptiveThreshold(
         filtered, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 21, 10
     )
     return binary
 
-
 def save_debug_image(img: np.ndarray, name: str, folder: str = "debug_ocr") -> None:
-    """Helper to save intermediate debug steps only when DEBUG_OCR=1."""
     try:
         os.makedirs(folder, exist_ok=True)
         cv2.imwrite(os.path.join(folder, f"{name}.png"), img)

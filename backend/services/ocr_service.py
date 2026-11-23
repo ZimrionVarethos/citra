@@ -19,7 +19,6 @@ from services.preprocessing import (
     validate_image_bytes,
 )
 
-# Optional Tesseract support
 try:
     import pytesseract
 
@@ -43,8 +42,6 @@ try:
 except ImportError:
     pytesseract = None
 
-
-# RapidOCR CPU ONNX Engine (100% offline, lightweight)
 try:
     from rapidocr_onnxruntime import RapidOCR
     RAPID_OCR_AVAILABLE = True
@@ -52,12 +49,7 @@ except ImportError:
     RapidOCR = None
     RAPID_OCR_AVAILABLE = False
 
-
 class OcrPipeline:
-    """
-    Sistem Ekstraksi OCR Kartu Keluarga 100% Lokal (KK-SCANNER).
-    Menggabungkan OpenCV CLAHE enhancement, RapidOCR CPU engine, dan Tesseract fallback.
-    """
 
     def __init__(self, debug: bool = False, upload_folder: Optional[str] = None):
         self.debug = debug
@@ -70,7 +62,6 @@ class OcrPipeline:
                 self.rapid_engine = None
 
     def _extract_rapidocr_boxes(self, img_np: np.ndarray) -> List[Dict[str, Any]]:
-        """Mengekstrak bounding boxes menggunakan RapidOCR."""
         if not self.rapid_engine:
             return []
 
@@ -106,7 +97,6 @@ class OcrPipeline:
         return boxes
 
     def _extract_tesseract_boxes(self, img_np: np.ndarray) -> List[Dict[str, Any]]:
-        """Mengekstrak bounding boxes menggunakan Tesseract OCR (fallback)."""
         if not pytesseract:
             return []
 
@@ -158,15 +148,10 @@ class OcrPipeline:
         engine: str = "lokal",
         original_filename: str = "kk.jpg",
     ) -> Dict[str, Any]:
-        """
-        Memproses citra Kartu Keluarga secara lokal di memori dan menyimpan salinan berkas lokal untuk pratinjau.
-        """
-        # 1. Validasi Magic Bytes
         is_valid, mime_type = validate_image_bytes(image_bytes)
         if not is_valid:
             raise ValueError(mime_type)
 
-        # 2. Simpan salinan berkas lokal untuk pratinjau arsip
         saved_filename = ""
         if self.upload_folder:
             ext = os.path.splitext(original_filename)[1].lower() or ".jpg"
@@ -178,21 +163,17 @@ class OcrPipeline:
             except Exception:
                 saved_filename = ""
 
-        # 3. Decode citra ke OpenCV numpy array
         color_img = decode_image(image_bytes)
         if color_img is None:
             raise ValueError("File bukan citra gambar yang dapat didekode.")
 
         try:
-            # 4. Prapemrosesan: Resize max 2000px, Grayscale, CLAHE contrast enhancement
             color_img = resize_image_max_dim(color_img, max_dim=2000)
             gray = to_grayscale(color_img)
 
-            # CLAHE contrast enhancement mempertahankan ketajaman digit kecil
             clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
             enhanced_gray = clahe.apply(gray)
 
-            # Resize 2x dengan interpolasi cubic untuk membaca teks kecil di sel tabel
             h, w = enhanced_gray.shape[:2]
             upscaled = cv2.resize(enhanced_gray, (w * 2, h * 2), interpolation=cv2.INTER_CUBIC)
 
@@ -201,21 +182,18 @@ class OcrPipeline:
                 save_debug_image(enhanced_gray, "02_clahe")
                 save_debug_image(upscaled, "03_upscaled")
 
-            # 5. Ekstraksi Bounding Boxes
             boxes: List[Dict[str, Any]] = []
             used_engine = "RapidOCR (Lokal)"
 
             if self.rapid_engine:
                 boxes = self._extract_rapidocr_boxes(upscaled)
 
-            # Fallback ke Tesseract jika RapidOCR tidak tersedia atau mendeteksi sangat sedikit
             if len(boxes) < 15 and pytesseract:
                 used_engine = "Tesseract (Lokal)"
                 tess_boxes = self._extract_tesseract_boxes(enhanced_gray)
                 if len(tess_boxes) > len(boxes):
                     boxes = tess_boxes
 
-            # 6. Bedah Spasial Berbasis Koordinat Layout KK (layout_parser.py)
             parsed_result = parse_kk_from_spatial_boxes(boxes)
 
             identitas = parsed_result["identitas"]

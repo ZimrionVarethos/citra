@@ -9,13 +9,8 @@ from schemas.validators import validate_anggota, validate_identitas_kk
 kk_bp = Blueprint("kk", __name__)
 logger = logging.getLogger(__name__)
 
-
 @kk_bp.route("/kk", methods=["POST"])
 def create_kk():
-    """
-    Creates a new Kartu Keluarga document along with all its family members
-    in a single atomic database transaction.
-    """
     data = request.get_json(silent=True)
     if not data or not isinstance(data, dict):
         return jsonify({
@@ -27,7 +22,6 @@ def create_kk():
     anggota_list_data = data.get("anggota", [])
     gambar = data.get("gambar", "") or identitas_data.get("gambar", "")
 
-    # 1. Validate Identitas
     cleaned_identitas, identitas_errors = validate_identitas_kk(identitas_data)
     if identitas_errors:
         return jsonify({
@@ -35,7 +29,6 @@ def create_kk():
             "fields": identitas_errors
         }), 422
 
-    # 2. Check for duplicate no_kk
     existing = IdentitasKK.query.filter_by(no_kk=cleaned_identitas["no_kk"]).first()
     if existing:
         return jsonify({
@@ -43,7 +36,6 @@ def create_kk():
             "fields": {"no_kk": "Nomor KK ini telah terdaftar sebelumnya."}
         }), 409
 
-    # 3. Validate each Anggota and check for duplicate NIKs within same KK
     cleaned_anggota_list = []
     all_anggota_errors = {}
     seen_niks = set()
@@ -57,7 +49,6 @@ def create_kk():
                 ang_err["nik"] = f"NIK {nik} muncul lebih dari satu kali dalam KK ini."
             seen_niks.add(nik)
 
-            # Cek NIK di database
             db_nik_exists = AnggotaKeluargaKK.query.filter_by(nik=nik).first()
             if db_nik_exists:
                 ang_err["nik"] = f"NIK {nik} sudah terdaftar pada Kartu Keluarga lain di database."
@@ -73,14 +64,13 @@ def create_kk():
             "fields": all_anggota_errors
         }), 422
 
-    # 4. Atomic transaction
     try:
         if gambar:
             cleaned_identitas["gambar"] = os.path.basename(gambar)
 
         new_kk = IdentitasKK(**cleaned_identitas)
         db.session.add(new_kk)
-        db.session.flush()  # Populates new_kk.id
+        db.session.flush()
 
         for idx, ang_data in enumerate(cleaned_anggota_list):
             if "no_urut" not in ang_data or not ang_data["no_urut"]:
@@ -103,12 +93,8 @@ def create_kk():
             "fields": {"database": str(e)}
         }), 500
 
-
 @kk_bp.route("/kk", methods=["GET"])
 def list_kk():
-    """
-    List KK records with search filter and pagination.
-    """
     q = request.args.get("q", "").strip()
     try:
         page = max(1, int(request.args.get("page", 1)))
@@ -136,7 +122,6 @@ def list_kk():
             )
         )
 
-    # Order newest first
     query = query.order_by(IdentitasKK.created_at.desc())
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
 
@@ -153,10 +138,8 @@ def list_kk():
         }
     }), 200
 
-
 @kk_bp.route("/kk/<int:kk_id>", methods=["GET"])
 def get_kk_detail(kk_id: int):
-    """Retrieves full Kartu Keluarga details including all members."""
     kk = IdentitasKK.query.get(kk_id)
     if not kk:
         return jsonify({
@@ -167,10 +150,8 @@ def get_kk_detail(kk_id: int):
     host = request.host_url.rstrip("/")
     return jsonify(kk.to_dict(include_anggota=True, base_url=host)), 200
 
-
 @kk_bp.route("/kk/<int:kk_id>", methods=["PUT"])
 def update_kk(kk_id: int):
-    """Updates Identitas KK header and address fields."""
     kk = IdentitasKK.query.get(kk_id)
     if not kk:
         return jsonify({
@@ -186,7 +167,6 @@ def update_kk(kk_id: int):
             "fields": errors
         }), 422
 
-    # Check no_kk uniqueness if changed
     if "no_kk" in cleaned and cleaned["no_kk"] != kk.no_kk:
         existing = IdentitasKK.query.filter_by(no_kk=cleaned["no_kk"]).first()
         if existing and existing.id != kk.id:
@@ -213,13 +193,8 @@ def update_kk(kk_id: int):
             "fields": {"database": str(e)}
         }), 500
 
-
 @kk_bp.route("/kk/<int:kk_id>", methods=["DELETE"])
 def delete_kk(kk_id: int):
-    """
-    Deletes Kartu Keluarga and cascades to all its members.
-    Also cleans up associated local uploaded image.
-    """
     kk = IdentitasKK.query.get(kk_id)
     if not kk:
         return jsonify({
@@ -235,7 +210,6 @@ def delete_kk(kk_id: int):
         db.session.delete(kk)
         db.session.commit()
 
-        # Remove image file if exists
         if gambar and upload_folder:
             img_path = os.path.join(upload_folder, gambar)
             if os.path.exists(img_path):

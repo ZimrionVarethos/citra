@@ -18,7 +18,7 @@ export default function InteractiveKkSheet({
 
   return (
     <div className="space-y-3">
-      {/* View Switcher */}
+
       {previewUrl && (
         <div className="flex items-center justify-between text-xs">
           <span className="font-mono-tech text-[var(--text-secondary)] font-medium">
@@ -51,10 +51,9 @@ export default function InteractiveKkSheet({
         </div>
       )}
 
-      {/* Content */}
       {viewMode === "photo" && previewUrl ? (
         <div className="mono-card p-3 bg-zinc-950 flex flex-col items-center justify-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+
           <img
             src={previewUrl}
             alt="Foto Kartu Keluarga Asli"
@@ -63,7 +62,7 @@ export default function InteractiveKkSheet({
         </div>
       ) : (
         <div className="mono-card p-5 space-y-4 bg-white text-zinc-900 border border-zinc-300 shadow-sm text-xs">
-          {/* Header */}
+
           <div className="text-center border-b border-zinc-200 pb-3">
             <h2 className="text-xl font-bold tracking-tight">KARTU KELUARGA</h2>
             <p className="font-mono font-bold text-base mt-0.5">
@@ -71,7 +70,6 @@ export default function InteractiveKkSheet({
             </p>
           </div>
 
-          {/* Metadata Grid */}
           <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 font-mono text-[11px] leading-relaxed">
             <div>
               <span className="text-zinc-500">Nama Kepala Keluarga:</span>{" "}
@@ -109,7 +107,6 @@ export default function InteractiveKkSheet({
             </div>
           </div>
 
-          {/* Table Members */}
           <div className="overflow-x-auto border border-zinc-200 rounded">
             <table className="w-full text-left text-[11px] font-mono border-collapse">
               <thead className="bg-zinc-100 border-b border-zinc-200 uppercase text-[10px] text-zinc-600">
@@ -151,7 +148,6 @@ export default function InteractiveKkSheet({
             </table>
           </div>
 
-          {/* Footer */}
           <div className="flex items-center justify-between text-[11px] font-mono pt-2 border-t border-zinc-200 text-zinc-500">
             <span>
               Dikeluarkan Tanggal: <strong>{identitas.tanggal_dikeluarkan || "—"}</strong>

@@ -1,10 +1,3 @@
--- =============================================================================
--- Skema Database: KK-SCANNER PRO (PostgreSQL / Supabase)
--- Tabel: "tbl_identitasKK" & "tbl_anggotaKeluargaKK"
--- Sesuai Permendagri No. 109 Tahun 2019
--- =============================================================================
-
--- 1. Tabel Identitas Kartu Keluarga
 CREATE TABLE IF NOT EXISTS "tbl_identitasKK" (
     id BIGSERIAL PRIMARY KEY,
     no_kk VARCHAR(16) NOT NULL UNIQUE,
@@ -22,12 +15,8 @@ CREATE TABLE IF NOT EXISTS "tbl_identitasKK" (
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-
--- Index pencarian no_kk dan nama kepala keluarga
 CREATE INDEX IF NOT EXISTS idx_identitas_no_kk ON "tbl_identitasKK" (no_kk);
 CREATE INDEX IF NOT EXISTS idx_identitas_kepala_keluarga ON "tbl_identitasKK" (nama_kepala_keluarga);
-
--- 2. Tabel Anggota Keluarga Kartu Keluarga
 CREATE TABLE IF NOT EXISTS "tbl_anggotaKeluargaKK" (
     id BIGSERIAL PRIMARY KEY,
     id_kk BIGINT NOT NULL,
@@ -56,12 +45,7 @@ CREATE TABLE IF NOT EXISTS "tbl_anggotaKeluargaKK" (
         REFERENCES "tbl_identitasKK" (id)
         ON DELETE CASCADE
 );
-
--- Index pencarian anggota berdasarkan id_kk dan NIK
 CREATE INDEX IF NOT EXISTS idx_anggota_id_kk ON "tbl_anggotaKeluargaKK" (id_kk);
 CREATE INDEX IF NOT EXISTS idx_anggota_nik ON "tbl_anggotaKeluargaKK" (nik);
-
--- 3. Row Level Security (RLS) diaktifkan tanpa policy
--- Backend mengakses database lewat pooler connection string dengan user postgres (service role/superuser)
 ALTER TABLE "tbl_identitasKK" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "tbl_anggotaKeluargaKK" ENABLE ROW LEVEL SECURITY;

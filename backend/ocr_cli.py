@@ -1,20 +1,10 @@
-#!/usr/bin/env python3
-"""
-CLI utility to test OCR Kartu Keluarga independently without launching Flask.
-Usage:
-    python ocr_cli.py path/to/kartu_keluarga.jpg
-    DEBUG_OCR=1 python ocr_cli.py path/to/kartu_keluarga.png
-"""
-
 import json
 import os
 import sys
 
-# Ensure backend root is on sys.path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from services.ocr_service import OcrPipeline
-
 
 def main():
     if len(sys.argv) < 2:
@@ -36,12 +26,10 @@ def main():
     pipeline = OcrPipeline(debug=debug)
     try:
         result = pipeline.process(image_bytes)
-        # Pretty print JSON output to stdout
         print(json.dumps(result, indent=2, ensure_ascii=False))
     except Exception as e:
         print(f"[!] Error saat memproses OCR: {e}", file=sys.stderr)
         sys.exit(2)
-
 
 if __name__ == "__main__":
     main()

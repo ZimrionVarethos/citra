@@ -29,12 +29,10 @@ export default function KkDetailPage() {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [showOriginalImage, setShowOriginalImage] = useState(false);
 
-  // Modals state
   const [isEditIdentitasOpen, setIsEditIdentitasOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Partial<AnggotaKeluarga> | null>(null);
   const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
 
-  // Deletion modals state
   const [isDeletingKk, setIsDeletingKk] = useState(false);
   const [deletingKkConfirm, setDeletingKkConfirm] = useState(false);
   const [deletingMember, setDeletingMember] = useState<AnggotaKeluarga | null>(null);
@@ -65,7 +63,6 @@ export default function KkDetailPage() {
     loadDetail();
   }, [loadDetail]);
 
-  // Save Identitas updates
   const handleSaveIdentitas = async (updated: Partial<IdentitasKK>) => {
     try {
       const res = await updateKk(kkId, updated);
@@ -77,7 +74,6 @@ export default function KkDetailPage() {
     }
   };
 
-  // Delete KK
   const handleConfirmDeleteKk = async () => {
     try {
       setIsDeletingKk(true);
@@ -93,7 +89,6 @@ export default function KkDetailPage() {
     }
   };
 
-  // Member management
   const handleOpenAddMember = () => {
     setEditingMember(null);
     setIsMemberModalOpen(true);
@@ -107,11 +102,11 @@ export default function KkDetailPage() {
   const handleSaveMember = async (formData: Partial<AnggotaKeluarga>) => {
     try {
       if (formData.id) {
-        // Update member
+
         const res = await updateAnggota(formData.id, formData);
         addToast("success", res.message || "Data anggota berhasil diperbarui.");
       } else {
-        // Add member
+
         const res = await addAnggota(kkId, formData);
         addToast("success", res.message || "Anggota baru berhasil ditambahkan.");
       }
@@ -171,7 +166,6 @@ export default function KkDetailPage() {
     <div className="py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
       <Toast toasts={toasts} onDismiss={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))} />
 
-      {/* Breadcrumb Navigation */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border-light)] pb-5">
         <div>
           <div className="flex items-center gap-2 text-xs font-mono-tech text-[var(--text-secondary)]">
@@ -220,7 +214,6 @@ export default function KkDetailPage() {
         </div>
       </div>
 
-      {/* Card 1: Identitas KK & Alamat */}
       <div className="mono-card p-6 space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-light)] pb-3.5">
           <div>
@@ -283,7 +276,6 @@ export default function KkDetailPage() {
         </div>
       </div>
 
-      {/* Berkas Asli Pemindaian */}
       {kkData.gambar_url && (
         <div className="mono-card p-4 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -327,7 +319,6 @@ export default function KkDetailPage() {
         </div>
       )}
 
-      {/* Card 2: Tabel Anggota Keluarga */}
       <div className="mono-card p-6 space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-light)] pb-3.5">
           <div>
@@ -337,7 +328,7 @@ export default function KkDetailPage() {
           </div>
 
           <div className="flex items-center gap-2.5">
-            {/* View Switcher */}
+
             <div className="inline-flex rounded-lg border border-[var(--border-mid)] p-0.5 bg-[var(--bg-subtle)] text-xs font-medium">
               <button
                 type="button"
@@ -387,7 +378,6 @@ export default function KkDetailPage() {
           </div>
         </div>
 
-        {/* Member Table */}
         <div className="overflow-x-auto border border-[var(--border-light)] rounded-xl">
           <table className="w-full text-left border-collapse text-xs">
             <thead className="bg-[var(--bg-subtle)] border-b border-[var(--border-light)] font-mono-tech uppercase text-[11px] text-[var(--text-secondary)]">
@@ -497,7 +487,6 @@ export default function KkDetailPage() {
         </div>
       </div>
 
-      {/* Edit Identitas KK Modal */}
       <EditIdentitasModal
         isOpen={isEditIdentitasOpen}
         identitas={kkData}
@@ -505,7 +494,6 @@ export default function KkDetailPage() {
         onSave={handleSaveIdentitas}
       />
 
-      {/* Edit / Add Member Modal */}
       <EditMemberModal
         isOpen={isMemberModalOpen}
         member={editingMember}
@@ -513,7 +501,6 @@ export default function KkDetailPage() {
         onSave={handleSaveMember}
       />
 
-      {/* Confirm Delete KK Modal */}
       <ConfirmDeleteModal
         isOpen={deletingKkConfirm}
         title="Hapus Kartu Keluarga"
@@ -523,7 +510,6 @@ export default function KkDetailPage() {
         onConfirm={handleConfirmDeleteKk}
       />
 
-      {/* Confirm Delete Member Modal */}
       <ConfirmDeleteModal
         isOpen={!!deletingMember}
         title="Hapus Anggota Keluarga"

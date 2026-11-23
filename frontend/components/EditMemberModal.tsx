@@ -48,7 +48,6 @@ export default function EditMemberModal({
     }
   }, [member, isOpen]);
 
-  // Handle escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isOpen) {
@@ -66,7 +65,6 @@ export default function EditMemberModal({
     const decoded = decodeNik(digitsOnly);
     setNikMeta(decoded);
 
-    // Auto-fill gender & DOB if valid
     const updates: Partial<AnggotaKeluarga> = { nik: digitsOnly };
     if (decoded.valid) {
       if (decoded.gender) updates.jenis_kelamin = decoded.gender;
@@ -87,7 +85,7 @@ export default function EditMemberModal({
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
     >
       <div className="mono-card max-w-2xl w-full my-8 bg-[var(--bg-surface)] overflow-hidden shadow-2xl border border-[var(--border-mid)] animate-in fade-in zoom-in-95 duration-150">
-        {/* Modal Header */}
+
         <div className="px-5 py-4 bg-[var(--bg-subtle)] border-b border-[var(--border-light)] flex items-center justify-between">
           <div>
             <span className="font-mono-tech text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
@@ -109,9 +107,8 @@ export default function EditMemberModal({
           </button>
         </div>
 
-        {/* Modal Body Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
-          {/* Row 1: Nama & NIK */}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="mono-label">
@@ -166,7 +163,6 @@ export default function EditMemberModal({
             </div>
           </div>
 
-          {/* Row 2: JK & Tempat / Tanggal Lahir */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="mono-label">
@@ -210,7 +206,6 @@ export default function EditMemberModal({
             </div>
           </div>
 
-          {/* Row 3: Agama, Pendidikan, Pekerjaan, Gol Darah */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
               <label className="mono-label">AGAMA</label>
@@ -267,7 +262,6 @@ export default function EditMemberModal({
             </div>
           </div>
 
-          {/* Row 4: Status Perkawinan & Hubungan */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="mono-label">STATUS PERKAWINAN</label>
@@ -305,7 +299,6 @@ export default function EditMemberModal({
             </div>
           </div>
 
-          {/* Row 5: Kewarganegaraan & Ortu */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="mono-label">KEWARGANEGARAAN</label>

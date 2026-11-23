@@ -6,10 +6,8 @@ from sqlalchemy.engine import Engine
 
 db = SQLAlchemy()
 
-
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
-    """Enables foreign key constraint enforcement in SQLite."""
     try:
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA foreign_keys=ON")
@@ -17,11 +15,7 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
     except Exception:
         pass
 
-
 class IdentitasKK(db.Model):
-    """
-    Model for tbl_identitasKK: stores family card header & address metadata.
-    """
     __tablename__ = "tbl_identitasKK"
     __table_args__ = {"quote": True}
 
@@ -37,7 +31,7 @@ class IdentitasKK(db.Model):
     provinsi = db.Column(db.String(100), default="")
     kode_pos = db.Column(db.String(10), default="")
     tanggal_dikeluarkan = db.Column(db.Date, nullable=True)
-    gambar = db.Column(db.String(255), nullable=True)  # Filename of uploaded image
+    gambar = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     updated_at = db.Column(
         db.DateTime(timezone=True),
@@ -46,7 +40,6 @@ class IdentitasKK(db.Model):
         nullable=False,
     )
 
-    # 1 KK -> many Anggota with CASCADE delete in ORM and DB
     anggota = db.relationship(
         "AnggotaKeluargaKK",
         backref="identitas_kk",
@@ -88,11 +81,7 @@ class IdentitasKK(db.Model):
             result["anggota"] = [a.to_dict() for a in self.anggota]
         return result
 
-
 class AnggotaKeluargaKK(db.Model):
-    """
-    Model for tbl_anggotaKeluargaKK: stores family card member biodata and relations.
-    """
     __tablename__ = "tbl_anggotaKeluargaKK"
     __table_args__ = {"quote": True}
 
@@ -106,7 +95,7 @@ class AnggotaKeluargaKK(db.Model):
     no_urut = db.Column(db.Integer, nullable=False, default=1)
     nama_lengkap = db.Column(db.String(255), nullable=False)
     nik = db.Column(db.String(16), nullable=False, index=True)
-    jenis_kelamin = db.Column(db.String(20), nullable=False)  # LAKI-LAKI / PEREMPUAN
+    jenis_kelamin = db.Column(db.String(20), nullable=False)
     tempat_lahir = db.Column(db.String(100), nullable=False)
     tanggal_lahir = db.Column(db.Date, nullable=False)
     agama = db.Column(db.String(50), default="")
@@ -146,7 +135,7 @@ class AnggotaKeluargaKK(db.Model):
             "status_perkawinan": self.status_perkawinan or "",
             "tanggal_perkawinan": self.tanggal_perkawinan.isoformat() if self.tanggal_perkawinan else None,
             "status_hubungan_dalam_keluarga": self.status_hubungan_dalam_keluarga or "",
-            "status_hubungan": self.status_hubungan_dalam_keluarga or "",  # alias for compatibility
+            "status_hubungan": self.status_hubungan_dalam_keluarga or "",
             "kewarganegaraan": self.kewarganegaraan or "WNI",
             "no_paspor": self.no_paspor or "",
             "no_kitas_kitap": self.no_kitas_kitap or "",

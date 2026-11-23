@@ -1,14 +1,7 @@
-"""
-Constants, standard enumerations, and lookup tables for Indonesian Kartu Keluarga.
-Sesuai Permendagri No. 109 Tahun 2019 & Pedoman Ditjen Dukcapil Kemendagri.
-"""
-
 from typing import Dict, List
 
-# Standard Gender options
 GENDER_OPTIONS: List[str] = ["LAKI-LAKI", "PEREMPUAN"]
 
-# Standard Religion options
 RELIGION_OPTIONS: List[str] = [
     "ISLAM",
     "KRISTEN",
@@ -19,7 +12,6 @@ RELIGION_OPTIONS: List[str] = [
     "PENGHAYAT KEPERCAYAAN",
 ]
 
-# Standard Education options
 EDUCATION_OPTIONS: List[str] = [
     "TIDAK / BELUM SEKOLAH",
     "BELUM TAMAT SD/SEDERAJAT",
@@ -33,7 +25,6 @@ EDUCATION_OPTIONS: List[str] = [
     "STRATA III",
 ]
 
-# Standard Marital Status options
 MARITAL_OPTIONS: List[str] = [
     "BELUM KAWIN",
     "KAWIN TERCATAT",
@@ -42,7 +33,6 @@ MARITAL_OPTIONS: List[str] = [
     "CERAI MATI",
 ]
 
-# Standard Family Relationship options
 RELATION_OPTIONS: List[str] = [
     "KEPALA KELUARGA",
     "SUAMI",
@@ -57,7 +47,6 @@ RELATION_OPTIONS: List[str] = [
     "LAINNYA",
 ]
 
-# Standard Blood Type options
 BLOOD_TYPE_OPTIONS: List[str] = [
     "A",
     "B",
@@ -74,10 +63,8 @@ BLOOD_TYPE_OPTIONS: List[str] = [
     "-",
 ]
 
-# Standard Citizenship options
 CITIZENSHIP_OPTIONS: List[str] = ["WNI", "WNA"]
 
-# Standard Occupation options
 OCCUPATION_OPTIONS: List[str] = [
     "BELUM/TIDAK BEKERJA",
     "MENGURUS RUMAH TANGGA",
@@ -100,7 +87,6 @@ OCCUPATION_OPTIONS: List[str] = [
     "LAINNYA",
 ]
 
-# Common OCR digit confusion map (character -> digit)
 CHAR_TO_DIGIT_MAP: Dict[str, str] = {
     "O": "0",
     "o": "0",
@@ -125,7 +111,6 @@ CHAR_TO_DIGIT_MAP: Dict[str, str] = {
     "q": "9",
 }
 
-# Common header label keywords for Kartu Keluarga
 HEADER_LABEL_KEYWORDS = {
     "no_kk": ["NO.", "NO", "NOMOR", "KARTU KELUARGA"],
     "nama_kepala_keluarga": ["NAMA KEPALA KELUARGA", "KEPALA KELUARGA"],

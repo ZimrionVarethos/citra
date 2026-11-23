@@ -7,24 +7,16 @@ from services.preprocessing import validate_image_bytes
 ocr_bp = Blueprint("ocr", __name__)
 logger = logging.getLogger(__name__)
 
-
 @ocr_bp.route("/health", methods=["GET"])
 def health_check():
-    """Health check endpoint for checking local or server uptime."""
     return jsonify({
         "status": "healthy",
         "service": "KK Scanner OCR Backend",
         "version": "1.2.0"
     }), 200
 
-
 @ocr_bp.route("/ocr", methods=["POST"])
 def run_ocr():
-    """
-    Accepts multipart/form-data with 'image' file field and optional 'engine'.
-    Processes image using spatial layout OCR and saves image locally for preview.
-    """
-    # Check manual input mode
     if request.form.get("manual"):
         return jsonify({
             "identitas": {
@@ -77,7 +69,6 @@ def run_ocr():
             "fields": {"image": "Batas ukuran file adalah 10 MB."}
         }), 413
 
-    # Magic byte validation
     is_valid, mime_or_err = validate_image_bytes(image_bytes)
     if not is_valid:
         return jsonify({
@@ -97,7 +88,6 @@ def run_ocr():
             engine=engine,
             original_filename=file.filename or "kk.jpg"
         )
-        # Tambahkan URL pratinjau gambar
         if result.get("gambar"):
             host = request.host_url.rstrip("/")
             result["gambar_url"] = f"{host}/api/uploads/{result['gambar']}"
@@ -137,10 +127,8 @@ def run_ocr():
             "gambar_url": None,
         }), 200
 
-
 @ocr_bp.route("/uploads/<path:filename>", methods=["GET"])
 def get_uploaded_image(filename: str):
-    """Serves uploaded KK images for frontend preview."""
     upload_folder = current_app.config.get("UPLOAD_FOLDER")
     if not upload_folder or not os.path.exists(os.path.join(upload_folder, filename)):
         return jsonify({"error": "Berkas citra tidak ditemukan."}), 404

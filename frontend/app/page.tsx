@@ -149,7 +149,6 @@ export default function HomePage() {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-16 space-y-12">
       <Toast toasts={toasts} onDismiss={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))} />
 
-      {/* Hero Section */}
       <div className="text-center space-y-3">
         <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-[#113B2E] dark:text-emerald-300">
           Scan Kartu Keluarga
@@ -159,7 +158,6 @@ export default function HomePage() {
         </p>
       </div>
 
-      {/* Centered Upload Card */}
       <div className="max-w-2xl mx-auto w-full">
         <div
           onClick={() => fileInputRef.current?.click()}
@@ -173,7 +171,6 @@ export default function HomePage() {
             className="hidden"
           />
 
-          {/* Card Icon with Upload Badge */}
           <div className="relative inline-block mx-auto mb-4">
             <svg
               className="w-16 h-16 sm:w-20 sm:h-20 text-[#113B2E] dark:text-emerald-400"
@@ -193,7 +190,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Texts */}
           <div className="space-y-1">
             <h2 className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
               {selectedFile ? selectedFile.name : "Upload atau Drop File"}
@@ -205,7 +201,6 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Action button inside dropzone */}
           <div className="mt-6">
             <button
               type="button"
@@ -228,7 +223,6 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Secondary Actions */}
         <div className="flex items-center justify-center gap-3 mt-4 text-xs">
           <button
             type="button"
@@ -254,7 +248,6 @@ export default function HomePage() {
           </button>
         </div>
 
-        {/* Processing Spinner Indicator */}
         {isProcessing && (
           <div className="mt-6 p-4 rounded-xl bg-[var(--bg-subtle)] border border-[var(--border-mid)] text-xs text-center flex items-center justify-center gap-3">
             <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
@@ -265,7 +258,6 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* Preview Section Underneath (Only shown after upload / scan) */}
       {(ocrResult || (selectedFile && !ocrResult && !isProcessing)) && (
         <div className="space-y-6 pt-4 border-t border-[var(--border-light)] animate-in fade-in duration-300">
           <div className="flex items-center justify-between">
@@ -283,7 +275,6 @@ export default function HomePage() {
             )}
           </div>
 
-          {/* Ready Banner */}
           {ocrResult && (
             <div className="p-4 sm:p-5 rounded-2xl border border-emerald-300 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-950 dark:text-emerald-100 flex flex-wrap items-center justify-between gap-4 shadow-sm">
               <div className="space-y-0.5">
@@ -311,7 +302,6 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Interactive Document Sheet or Raw Preview */}
           {ocrResult ? (
             <InteractiveKkSheet
               identitas={ocrResult.identitas}
@@ -321,7 +311,7 @@ export default function HomePage() {
           ) : (
             previewUrl && (
               <div className="mono-card p-4 flex flex-col items-center justify-center">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
+
                 <img
                   src={previewUrl}
                   alt="Pratinjau Kartu Keluarga"
@@ -333,7 +323,6 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Collapsible NIK Decoder Utility */}
       <div className="pt-4 border-t border-[var(--border-light)] text-center">
         <button
           type="button"

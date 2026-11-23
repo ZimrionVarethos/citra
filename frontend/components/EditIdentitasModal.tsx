@@ -48,7 +48,7 @@ export default function EditIdentitasModal({
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
     >
       <div className="mono-card max-w-2xl w-full my-8 bg-[var(--bg-surface)] overflow-hidden shadow-2xl border border-[var(--border-mid)] animate-in fade-in zoom-in-95 duration-150">
-        {/* Header */}
+
         <div className="px-5 py-4 bg-[var(--bg-subtle)] border-b border-[var(--border-light)] flex items-center justify-between">
           <div>
             <span className="font-mono-tech text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
@@ -70,7 +70,6 @@ export default function EditIdentitasModal({
           </button>
         </div>
 
-        {/* Body Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-5 text-xs">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>

@@ -7,10 +7,8 @@ from schemas.validators import validate_anggota
 anggota_bp = Blueprint("anggota", __name__)
 logger = logging.getLogger(__name__)
 
-
 @anggota_bp.route("/kk/<int:kk_id>/anggota", methods=["POST"])
 def add_anggota(kk_id: int):
-    """Adds a new family member to an existing Kartu Keluarga."""
     kk = IdentitasKK.query.get(kk_id)
     if not kk:
         return jsonify({
@@ -21,7 +19,6 @@ def add_anggota(kk_id: int):
     data = request.get_json(silent=True) or {}
     cleaned, errors = validate_anggota(data, is_update=False)
 
-    # Check NIK uniqueness
     nik = cleaned.get("nik", "")
     if nik:
         existing_nik = AnggotaKeluargaKK.query.filter_by(nik=nik).first()
@@ -35,7 +32,6 @@ def add_anggota(kk_id: int):
         }), 422
 
     try:
-        # Determine no_urut if not specified
         if "no_urut" not in cleaned or not cleaned["no_urut"]:
             max_urut = db.session.query(db.func.max(AnggotaKeluargaKK.no_urut)).filter_by(id_kk=kk_id).scalar() or 0
             cleaned["no_urut"] = max_urut + 1
@@ -43,7 +39,6 @@ def add_anggota(kk_id: int):
         new_member = AnggotaKeluargaKK(id_kk=kk_id, **cleaned)
         db.session.add(new_member)
 
-        # Jika anggota ini adalah Kepala Keluarga, sinkronkan nama di identitas KK
         if cleaned.get("status_hubungan_dalam_keluarga") == "KEPALA KELUARGA":
             kk.nama_kepala_keluarga = cleaned["nama_lengkap"]
 
@@ -61,10 +56,8 @@ def add_anggota(kk_id: int):
             "fields": {"database": str(e)}
         }), 500
 
-
 @anggota_bp.route("/anggota/<int:anggota_id>", methods=["PUT"])
 def update_anggota(anggota_id: int):
-    """Updates an existing family member record."""
     member = AnggotaKeluargaKK.query.get(anggota_id)
     if not member:
         return jsonify({
@@ -75,7 +68,6 @@ def update_anggota(anggota_id: int):
     data = request.get_json(silent=True) or {}
     cleaned, errors = validate_anggota(data, is_update=True)
 
-    # Check NIK uniqueness if changed
     nik = cleaned.get("nik", "")
     if nik and nik != member.nik:
         existing_nik = AnggotaKeluargaKK.query.filter(
@@ -94,7 +86,6 @@ def update_anggota(anggota_id: int):
         for key, val in cleaned.items():
             setattr(member, key, val)
 
-        # Jika diubah menjadi Kepala Keluarga, sinkronkan ke Identitas KK
         if member.status_hubungan_dalam_keluarga == "KEPALA KELUARGA":
             member.identitas_kk.nama_kepala_keluarga = member.nama_lengkap
 
@@ -111,10 +102,8 @@ def update_anggota(anggota_id: int):
             "fields": {"database": str(e)}
         }), 500
 
-
 @anggota_bp.route("/anggota/<int:anggota_id>", methods=["DELETE"])
 def delete_anggota(anggota_id: int):
-    """Deletes an individual family member record."""
     member = AnggotaKeluargaKK.query.get(anggota_id)
     if not member:
         return jsonify({

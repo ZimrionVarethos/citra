@@ -29,7 +29,7 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-30 bg-[var(--bg-surface)]/90 backdrop-blur-md border-b border-[var(--border-light)] transition-colors">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-        {/* Brand */}
+
         <Link href="/" className="flex items-center gap-2 font-bold text-base sm:text-lg tracking-tight text-[var(--text-primary)] no-underline">
           <div className="w-8 h-8 rounded-lg bg-red-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -39,7 +39,6 @@ export default function Navbar() {
           <span>KK Scanner</span>
         </Link>
 
-        {/* 2 Navigation Menus */}
         <nav aria-label="Navigasi Utama" className="flex items-center gap-6 sm:gap-8">
           <Link
             href="/"
@@ -69,7 +68,6 @@ export default function Navbar() {
           </Link>
         </nav>
 
-        {/* Right action: Theme toggle */}
         <div className="flex items-center">
           <button
             type="button"

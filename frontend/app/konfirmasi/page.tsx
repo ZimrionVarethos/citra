@@ -25,7 +25,7 @@ export default function KonfirmasiPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    // Check sessionStorage for OCR results
+
     const stored = sessionStorage.getItem("kk_ocr_pending_data");
     if (!stored) {
       router.replace("/");
@@ -70,7 +70,6 @@ export default function KonfirmasiPage() {
     );
   }
 
-  // Client-side quick validator
   const isNoKkValid = identitas.no_kk && identitas.no_kk.length === 16;
   const isKepalaValid = !!identitas.nama_kepala_keluarga?.trim();
   const isAlamatValid = !!identitas.alamat?.trim();
@@ -92,7 +91,7 @@ export default function KonfirmasiPage() {
   const handleDeleteMember = (idx: number) => {
     setAnggota((prev) => {
       const updated = prev.filter((_, i) => i !== idx);
-      // Re-assign no_urut
+
       return updated.map((m, i) => ({ ...m, no_urut: i + 1 }));
     });
     addToast("info", "Baris anggota telah dihapus.");
@@ -100,7 +99,7 @@ export default function KonfirmasiPage() {
 
   const handleSaveMember = (updatedData: Partial<AnggotaKeluarga>) => {
     if (editingMemberIdx !== null) {
-      // Update existing
+
       setAnggota((prev) => {
         const copy = [...prev];
         copy[editingMemberIdx] = { ...copy[editingMemberIdx], ...updatedData } as AnggotaKeluarga;
@@ -108,7 +107,7 @@ export default function KonfirmasiPage() {
       });
       addToast("success", "Data anggota berhasil diperbarui.");
     } else {
-      // Add new
+
       const newMember: AnggotaKeluarga = {
         no_urut: anggota.length + 1,
         nama_lengkap: updatedData.nama_lengkap || "",
@@ -133,7 +132,7 @@ export default function KonfirmasiPage() {
   };
 
   const handleSaveToDatabase = async () => {
-    // 1. Basic validation
+
     if (!isNoKkValid) {
       addToast("error", "Nomor KK harus tepat 16 digit angka.");
       return;
@@ -151,7 +150,6 @@ export default function KonfirmasiPage() {
       return;
     }
 
-    // Check all members have 16 digit NIK and nama
     for (let i = 0; i < anggota.length; i++) {
       const m = anggota[i];
       if (!m.nama_lengkap?.trim()) {
@@ -180,7 +178,6 @@ export default function KonfirmasiPage() {
       addToast("success", res.message || "Kartu Keluarga berhasil disimpan ke database!");
       sessionStorage.removeItem("kk_ocr_pending_data");
 
-      // Redirect to KK detail view
       setTimeout(() => {
         router.push(`/kk/${res.data.id}`);
       }, 1000);
@@ -198,7 +195,6 @@ export default function KonfirmasiPage() {
     <div className="py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
       <Toast toasts={toasts} onDismiss={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))} />
 
-      {/* Breadcrumb Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border-light)] pb-5">
         <div>
           <div className="flex items-center gap-2 text-xs font-mono-tech text-[var(--text-secondary)]">
@@ -242,7 +238,6 @@ export default function KonfirmasiPage() {
         </div>
       </div>
 
-      {/* OCR Diagnostics & Warnings */}
       {catatan.length > 0 && (
         <div className="p-4 rounded-xl border border-amber-300 dark:border-amber-800/60 bg-amber-50/70 dark:bg-amber-950/20 text-xs font-mono-tech space-y-2">
           <div className="flex items-center justify-between">
@@ -262,7 +257,6 @@ export default function KonfirmasiPage() {
         </div>
       )}
 
-      {/* Image Preview Panel */}
       {gambarUrl && (
         <div className="mono-card p-4 space-y-2.5">
           <div className="flex items-center justify-between">
@@ -305,7 +299,6 @@ export default function KonfirmasiPage() {
         </div>
       )}
 
-      {/* Card 1: Form Editable Identitas KK */}
       <div className="mono-card p-6 space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-light)] pb-3.5">
           <div>
@@ -461,7 +454,6 @@ export default function KonfirmasiPage() {
         </div>
       </div>
 
-      {/* Card 2: Editable Members Table */}
       <div className="mono-card p-6 space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-light)] pb-3.5">
           <div>
@@ -471,7 +463,7 @@ export default function KonfirmasiPage() {
           </div>
 
           <div className="flex items-center gap-2.5">
-            {/* Table view switcher */}
+
             <div className="inline-flex rounded-lg border border-[var(--border-mid)] p-0.5 bg-[var(--bg-subtle)] text-xs font-medium">
               <button
                 type="button"
@@ -518,7 +510,6 @@ export default function KonfirmasiPage() {
           </div>
         </div>
 
-        {/* Table Content */}
         <div className="overflow-x-auto border border-[var(--border-light)] rounded-xl">
           <table className="w-full text-left border-collapse text-xs">
             <thead className="bg-[var(--bg-subtle)] border-b border-[var(--border-light)] font-mono-tech uppercase text-[11px] text-[var(--text-secondary)]">
@@ -642,7 +633,6 @@ export default function KonfirmasiPage() {
           </table>
         </div>
 
-        {/* Bottom Save Action Bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-[var(--border-light)]">
           <div className="text-xs font-mono-tech text-[var(--text-secondary)]">
             Total Anggota: <strong>{anggota.length}</strong> &bull; Pastikan seluruh NIK 16 digit dan nama terisi dengan benar.
@@ -676,7 +666,6 @@ export default function KonfirmasiPage() {
         </div>
       </div>
 
-      {/* Edit Member Modal */}
       <EditMemberModal
         isOpen={isModalOpen}
         member={editingMemberIdx !== null ? anggota[editingMemberIdx] : null}

@@ -2,19 +2,13 @@ from datetime import datetime, date
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
-
 def validate_date(date_str: Optional[str], field_name: str, required: bool = True) -> Tuple[Optional[date], Optional[str]]:
-    """
-    Validates a date string in YYYY-MM-DD or DD-MM-YYYY format and converts it to datetime.date.
-    Returns (date_obj, error_message).
-    """
     if not date_str or not str(date_str).strip():
         if required:
             return None, f"Field {field_name} wajib diisi."
         return None, None
 
     val = str(date_str).strip()
-    # Support YYYY-MM-DD
     for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y", "%Y/%m/%d"):
         try:
             parsed = datetime.strptime(val, fmt).date()
@@ -24,16 +18,10 @@ def validate_date(date_str: Optional[str], field_name: str, required: bool = Tru
 
     return None, f"Format tanggal {field_name} tidak valid, gunakan YYYY-MM-DD."
 
-
 def validate_identitas_kk(data: Dict[str, Any], is_update: bool = False) -> Tuple[Dict[str, Any], Dict[str, str]]:
-    """
-    Validates payload for tbl_identitasKK.
-    Returns (cleaned_data, error_dict).
-    """
     errors: Dict[str, str] = {}
     cleaned: Dict[str, Any] = {}
 
-    # no_kk
     no_kk = str(data.get("no_kk", "")).strip()
     if not no_kk and not is_update:
         errors["no_kk"] = "Nomor KK wajib diisi."
@@ -44,26 +32,22 @@ def validate_identitas_kk(data: Dict[str, Any], is_update: bool = False) -> Tupl
         else:
             cleaned["no_kk"] = clean_no_kk
 
-    # nama_kepala_keluarga
     nama = str(data.get("nama_kepala_keluarga", "")).strip()
     if not nama and not is_update:
         errors["nama_kepala_keluarga"] = "Nama kepala keluarga wajib diisi."
     elif nama:
         cleaned["nama_kepala_keluarga"] = nama.upper()
 
-    # alamat
     alamat = str(data.get("alamat", "")).strip()
     if not alamat and not is_update:
         errors["alamat"] = "Alamat wajib diisi."
     elif alamat:
         cleaned["alamat"] = alamat
 
-    # Optional / string fields
     for field in ["rt", "rw", "desa_kelurahan", "kecamatan", "kabupaten_kota", "provinsi", "kode_pos"]:
         if field in data:
             cleaned[field] = str(data.get(field, "") or "").strip()
 
-    # tanggal_dikeluarkan
     if "tanggal_dikeluarkan" in data:
         tgl_val = data.get("tanggal_dikeluarkan")
         tgl_obj, err = validate_date(tgl_val, "tanggal_dikeluarkan", required=False)
@@ -74,16 +58,10 @@ def validate_identitas_kk(data: Dict[str, Any], is_update: bool = False) -> Tupl
 
     return cleaned, errors
 
-
 def validate_anggota(data: Dict[str, Any], is_update: bool = False) -> Tuple[Dict[str, Any], Dict[str, str]]:
-    """
-    Validates payload for tbl_anggotaKeluargaKK.
-    Returns (cleaned_data, error_dict).
-    """
     errors: Dict[str, str] = {}
     cleaned: Dict[str, Any] = {}
 
-    # no_urut
     if "no_urut" in data:
         try:
             cleaned["no_urut"] = int(data["no_urut"])
@@ -92,14 +70,12 @@ def validate_anggota(data: Dict[str, Any], is_update: bool = False) -> Tuple[Dic
     elif not is_update:
         cleaned["no_urut"] = 1
 
-    # nama_lengkap
     nama = str(data.get("nama_lengkap", "")).strip()
     if not nama and not is_update:
         errors["nama_lengkap"] = "Nama lengkap anggota wajib diisi."
     elif nama:
         cleaned["nama_lengkap"] = nama.upper()
 
-    # nik
     nik = str(data.get("nik", "")).strip()
     if not nik and not is_update:
         errors["nik"] = "NIK anggota wajib diisi."
@@ -110,7 +86,6 @@ def validate_anggota(data: Dict[str, Any], is_update: bool = False) -> Tuple[Dic
         else:
             cleaned["nik"] = clean_nik
 
-    # jenis_kelamin
     jk = str(data.get("jenis_kelamin", "")).strip().upper()
     if not jk and not is_update:
         errors["jenis_kelamin"] = "Jenis kelamin wajib diisi."
@@ -122,14 +97,12 @@ def validate_anggota(data: Dict[str, Any], is_update: bool = False) -> Tuple[Dic
         else:
             errors["jenis_kelamin"] = "Jenis kelamin harus LAKI-LAKI atau PEREMPUAN."
 
-    # tempat_lahir
     tempat = str(data.get("tempat_lahir", "")).strip()
     if not tempat and not is_update:
         errors["tempat_lahir"] = "Tempat lahir wajib diisi."
     elif tempat:
         cleaned["tempat_lahir"] = tempat.upper()
 
-    # tanggal_lahir
     if "tanggal_lahir" in data or not is_update:
         tgl_obj, err = validate_date(data.get("tanggal_lahir"), "tanggal_lahir", required=not is_update)
         if err:
@@ -137,14 +110,12 @@ def validate_anggota(data: Dict[str, Any], is_update: bool = False) -> Tuple[Dic
         else:
             cleaned["tanggal_lahir"] = tgl_obj
 
-    # status_hubungan_dalam_keluarga
     hub = str(data.get("status_hubungan_dalam_keluarga", "")).strip().upper()
     if not hub and not is_update:
         errors["status_hubungan_dalam_keluarga"] = "Status hubungan dalam keluarga wajib diisi."
     elif hub:
         cleaned["status_hubungan_dalam_keluarga"] = hub
 
-    # Optional fields
     string_fields = [
         "agama",
         "pendidikan",
@@ -161,7 +132,6 @@ def validate_anggota(data: Dict[str, Any], is_update: bool = False) -> Tuple[Dic
         if sf in data:
             cleaned[sf] = str(data.get(sf, "") or "").strip()
 
-    # tanggal_perkawinan (nullable)
     if "tanggal_perkawinan" in data:
         tp_val = data.get("tanggal_perkawinan")
         tp_obj, err = validate_date(tp_val, "tanggal_perkawinan", required=False)

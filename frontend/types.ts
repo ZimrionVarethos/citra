@@ -1,8 +1,3 @@
-/**
- * Strict TypeScript Type Definitions for KK-SCANNER PRO
- * Sesuai Permendagri No. 109 Tahun 2019 & Database Schema
- */
-
 export interface IdentitasKK {
   id?: number;
   no_kk: string;

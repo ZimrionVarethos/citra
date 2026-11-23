@@ -7,23 +7,18 @@ from config import Config
 from models import db
 from routes import register_routes
 
-# Configure structured logging (ensuring NO sensitive NIK / KK data is logged)
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
 logger = logging.getLogger("kk_scanner_app")
 
-
 def create_app(config_class=Config) -> Flask:
-    """Application factory for KK-SCANNER PRO Backend."""
     app = Flask(__name__)
     app.config.from_object(config_class)
 
-    # Initialize extensions
     db.init_app(app)
 
-    # Enable CORS for allowed origins
     allowed_origins = app.config.get("ALLOWED_ORIGINS", ["http://localhost:3000"])
     CORS(
         app,
@@ -33,10 +28,8 @@ def create_app(config_class=Config) -> Flask:
         allow_headers=["Content-Type", "Authorization", "Accept", "X-Requested-With"],
     )
 
-    # Register API blueprints under /api prefix
     register_routes(app)
 
-    # Global HTTP error handlers
     @app.errorhandler(400)
     def bad_request(e):
         return jsonify({"error": "Bad request payload.", "fields": {"message": str(e)}}), 400
@@ -58,18 +51,14 @@ def create_app(config_class=Config) -> Flask:
         logger.error("Internal Server Error: %s", e, exc_info=True)
         return jsonify({"error": "Terjadi kesalahan internal pada peladen.", "fields": {}}), 500
 
-    # Flask CLI command: flask init-db
     @app.cli.command("init-db")
     def init_db():
-        """Creates tables in the target database from schema / models."""
         with app.app_context():
             db.create_all()
             print("[+] Berhasil menginisialisasi tabel database ('tbl_identitasKK' & 'tbl_anggotaKeluargaKK').")
 
     return app
 
-
-# Production / Gunicorn entrypoint
 app = create_app()
 
 if __name__ == "__main__":
