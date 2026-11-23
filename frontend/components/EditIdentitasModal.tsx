@@ -45,13 +45,13 @@ export default function EditIdentitasModal({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 bg-black/65 z-50 flex items-center justify-center p-4 overflow-y-auto"
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
     >
-      <div className="mono-card max-w-2xl w-full my-8 bg-[var(--bg-surface)] overflow-hidden">
+      <div className="mono-card max-w-2xl w-full my-8 bg-[var(--bg-surface)] overflow-hidden shadow-2xl border border-[var(--border-mid)] animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="p-4 bg-[var(--bg-muted)] border-b-2 border-[var(--border-strong)] flex items-center justify-between">
+        <div className="px-5 py-4 bg-[var(--bg-subtle)] border-b border-[var(--border-light)] flex items-center justify-between">
           <div>
-            <span className="font-mono-tech text-[10px] font-bold uppercase text-[var(--text-muted)]">
+            <span className="font-mono-tech text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
               KOREKSI IDENTITAS KK
             </span>
             <h3 className="font-bold text-base text-[var(--text-primary)]">
@@ -61,17 +61,20 @@ export default function EditIdentitasModal({
           <button
             onClick={onClose}
             type="button"
-            className="mono-btn-secondary px-2.5 py-1 text-xs font-mono-tech"
+            className="w-8 h-8 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-muted)] flex items-center justify-center transition-colors"
+            title="Tutup (Esc)"
           >
-            X [Esc]
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
 
         {/* Body Form */}
-        <form onSubmit={handleSubmit} className="p-5 space-y-4 text-xs">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <form onSubmit={handleSubmit} className="p-6 space-y-5 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
+              <label className="mono-label">
                 NOMOR KARTU KELUARGA (16 DIGIT) *
               </label>
               <input
@@ -85,12 +88,12 @@ export default function EditIdentitasModal({
                     no_kk: e.target.value.replace(/\D/g, "").slice(0, 16),
                   })
                 }
-                className="w-full px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] font-mono-tech font-bold text-sm text-[var(--text-primary)]"
+                className="mono-input font-mono-tech font-bold"
               />
             </div>
 
             <div>
-              <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
+              <label className="mono-label">
                 NAMA KEPALA KELUARGA *
               </label>
               <input
@@ -103,13 +106,13 @@ export default function EditIdentitasModal({
                     nama_kepala_keluarga: e.target.value.toUpperCase(),
                   })
                 }
-                className="w-full px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] font-bold text-sm text-[var(--text-primary)]"
+                className="mono-input font-bold"
               />
             </div>
           </div>
 
           <div>
-            <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
+            <label className="mono-label">
               ALAMAT LENGKAP *
             </label>
             <input
@@ -117,115 +120,104 @@ export default function EditIdentitasModal({
               type="text"
               value={formData.alamat || ""}
               onChange={(e) => setFormData({ ...formData, alamat: e.target.value })}
-              className="w-full px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] text-xs text-[var(--text-primary)]"
+              className="mono-input"
             />
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
-                RT
-              </label>
+              <label className="mono-label">RT</label>
               <input
                 type="text"
                 maxLength={3}
                 value={formData.rt || ""}
                 onChange={(e) => setFormData({ ...formData, rt: e.target.value })}
-                className="w-full px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] font-mono-tech text-xs"
+                className="mono-input font-mono-tech"
               />
             </div>
             <div>
-              <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
-                RW
-              </label>
+              <label className="mono-label">RW</label>
               <input
                 type="text"
                 maxLength={3}
                 value={formData.rw || ""}
                 onChange={(e) => setFormData({ ...formData, rw: e.target.value })}
-                className="w-full px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] font-mono-tech text-xs"
+                className="mono-input font-mono-tech"
               />
             </div>
             <div>
-              <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
-                KODE POS
-              </label>
+              <label className="mono-label">KODE POS</label>
               <input
                 type="text"
                 maxLength={5}
                 value={formData.kode_pos || ""}
                 onChange={(e) => setFormData({ ...formData, kode_pos: e.target.value })}
-                className="w-full px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] font-mono-tech text-xs"
+                className="mono-input font-mono-tech"
               />
             </div>
             <div>
-              <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
-                TGL DIKELUARKAN
-              </label>
+              <label className="mono-label">TGL DIKELUARKAN</label>
               <input
                 type="date"
                 value={formData.tanggal_dikeluarkan || ""}
                 onChange={(e) => setFormData({ ...formData, tanggal_dikeluarkan: e.target.value })}
-                className="w-full px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] font-mono-tech text-xs"
+                className="mono-input font-mono-tech"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
-                DESA / KELURAHAN
-              </label>
+              <label className="mono-label">DESA / KELURAHAN</label>
               <input
                 type="text"
                 value={formData.desa_kelurahan || ""}
                 onChange={(e) =>
                   setFormData({ ...formData, desa_kelurahan: e.target.value.toUpperCase() })
                 }
-                className="w-full px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] text-xs"
+                className="mono-input"
               />
             </div>
             <div>
-              <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
-                KECAMATAN
-              </label>
+              <label className="mono-label">KECAMATAN</label>
               <input
                 type="text"
                 value={formData.kecamatan || ""}
                 onChange={(e) =>
                   setFormData({ ...formData, kecamatan: e.target.value.toUpperCase() })
                 }
-                className="w-full px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] text-xs"
+                className="mono-input"
               />
             </div>
             <div>
-              <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
-                KABUPATEN / KOTA
-              </label>
+              <label className="mono-label">KABUPATEN / KOTA</label>
               <input
                 type="text"
                 value={formData.kabupaten_kota || ""}
                 onChange={(e) =>
                   setFormData({ ...formData, kabupaten_kota: e.target.value.toUpperCase() })
                 }
-                className="w-full px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] text-xs"
+                className="mono-input"
               />
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-4 border-t border-[var(--border-light)]">
+          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-[var(--border-light)]">
             <button
               onClick={onClose}
               type="button"
-              className="mono-btn-secondary px-4 py-2 min-h-[38px] text-xs"
+              className="mono-btn-secondary px-4 py-2 text-xs"
             >
               Batal
             </button>
             <button
               type="submit"
-              className="mono-btn-primary px-5 py-2 min-h-[38px] text-xs font-bold"
+              className="mono-btn-primary px-5 py-2 text-xs font-semibold flex items-center gap-2"
             >
-              Simpan Identitas KK
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span>Simpan Identitas KK</span>
             </button>
           </div>
         </form>

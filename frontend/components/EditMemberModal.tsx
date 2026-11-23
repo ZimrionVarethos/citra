@@ -84,13 +84,13 @@ export default function EditMemberModal({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 bg-black/65 z-50 flex items-center justify-center p-4 overflow-y-auto"
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
     >
-      <div className="mono-card max-w-2xl w-full my-8 bg-[var(--bg-surface)] overflow-hidden">
+      <div className="mono-card max-w-2xl w-full my-8 bg-[var(--bg-surface)] overflow-hidden shadow-2xl border border-[var(--border-mid)] animate-in fade-in zoom-in-95 duration-150">
         {/* Modal Header */}
-        <div className="p-4 bg-[var(--bg-muted)] border-b-2 border-[var(--border-strong)] flex items-center justify-between">
+        <div className="px-5 py-4 bg-[var(--bg-subtle)] border-b border-[var(--border-light)] flex items-center justify-between">
           <div>
-            <span className="font-mono-tech text-[10px] font-bold uppercase text-[var(--text-muted)]">
+            <span className="font-mono-tech text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
               KOREKSI ANGGOTA KELUARGA
             </span>
             <h3 className="font-bold text-base text-[var(--text-primary)]">
@@ -100,18 +100,21 @@ export default function EditMemberModal({
           <button
             onClick={onClose}
             type="button"
-            className="mono-btn-secondary px-2.5 py-1 text-xs font-mono-tech"
+            className="w-8 h-8 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-muted)] flex items-center justify-center transition-colors"
+            title="Tutup (Esc)"
           >
-            X [Esc]
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
 
         {/* Modal Body Form */}
-        <form onSubmit={handleSubmit} className="p-5 space-y-4 text-xs">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
           {/* Row 1: Nama & NIK */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
+              <label className="mono-label">
                 NAMA LENGKAP *
               </label>
               <input
@@ -120,12 +123,12 @@ export default function EditMemberModal({
                 value={formData.nama_lengkap || ""}
                 onChange={(e) => setFormData({ ...formData, nama_lengkap: e.target.value.toUpperCase() })}
                 placeholder="CONTOH: AHMAD FAUZI"
-                className="w-full px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] font-bold text-sm text-[var(--text-primary)]"
+                className="mono-input font-bold"
               />
             </div>
 
             <div>
-              <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
+              <label className="mono-label">
                 NIK (16 DIGIT) *
               </label>
               <input
@@ -135,18 +138,30 @@ export default function EditMemberModal({
                 value={formData.nik || ""}
                 onChange={(e) => handleNikChange(e.target.value)}
                 placeholder="3271041205850001"
-                className="w-full px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] font-mono-tech font-bold text-sm text-[var(--text-primary)]"
+                className="mono-input font-mono-tech font-bold"
               />
               {nikMeta && (
-                <span
-                  className={`block mt-1 font-mono-tech text-[10px] ${
-                    nikMeta.valid ? "text-emerald-700 dark:text-emerald-400 font-bold" : "text-red-600"
+                <div
+                  className={`mt-1.5 flex items-center gap-1.5 text-[11px] font-mono-tech ${
+                    nikMeta.valid ? "text-emerald-700 dark:text-emerald-400 font-medium" : "text-red-600 dark:text-red-400"
                   }`}
                 >
-                  {nikMeta.valid
-                    ? `✓ Wilayah: ${nikMeta.prov_code}${nikMeta.city_code}${nikMeta.district_code} • ${nikMeta.gender} • Tgl: ${nikMeta.birth_date}`
-                    : `⚠ ${nikMeta.reason}`}
-                </span>
+                  {nikMeta.valid ? (
+                    <>
+                      <svg className="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Wilayah: {nikMeta.prov_code}.{nikMeta.city_code}.{nikMeta.district_code} &bull; {nikMeta.gender} &bull; Tgl: {nikMeta.birth_date}</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-3.5 h-3.5 text-red-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      <span>{nikMeta.reason}</span>
+                    </>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -154,13 +169,13 @@ export default function EditMemberModal({
           {/* Row 2: JK & Tempat / Tanggal Lahir */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
+              <label className="mono-label">
                 JENIS KELAMIN *
               </label>
               <select
                 value={formData.jenis_kelamin || "LAKI-LAKI"}
                 onChange={(e) => setFormData({ ...formData, jenis_kelamin: e.target.value })}
-                className="w-full px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] font-bold text-xs"
+                className="mono-input font-medium"
               >
                 <option value="LAKI-LAKI">LAKI-LAKI</option>
                 <option value="PEREMPUAN">PEREMPUAN</option>
@@ -168,7 +183,7 @@ export default function EditMemberModal({
             </div>
 
             <div>
-              <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
+              <label className="mono-label">
                 TEMPAT LAHIR *
               </label>
               <input
@@ -177,20 +192,20 @@ export default function EditMemberModal({
                 value={formData.tempat_lahir || ""}
                 onChange={(e) => setFormData({ ...formData, tempat_lahir: e.target.value.toUpperCase() })}
                 placeholder="BOGOR"
-                className="w-full px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] text-xs"
+                className="mono-input"
               />
             </div>
 
             <div>
-              <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
-                TANGGAL LAHIR (YYYY-MM-DD) *
+              <label className="mono-label">
+                TANGGAL LAHIR *
               </label>
               <input
                 required
                 type="date"
                 value={formData.tanggal_lahir || ""}
                 onChange={(e) => setFormData({ ...formData, tanggal_lahir: e.target.value })}
-                className="w-full px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] font-mono-tech text-xs"
+                className="mono-input font-mono-tech"
               />
             </div>
           </div>
@@ -198,13 +213,11 @@ export default function EditMemberModal({
           {/* Row 3: Agama, Pendidikan, Pekerjaan, Gol Darah */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
-                AGAMA
-              </label>
+              <label className="mono-label">AGAMA</label>
               <select
                 value={formData.agama || "ISLAM"}
                 onChange={(e) => setFormData({ ...formData, agama: e.target.value })}
-                className="w-full px-2 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] text-xs"
+                className="mono-input"
               >
                 <option value="ISLAM">ISLAM</option>
                 <option value="KRISTEN">KRISTEN</option>
@@ -217,39 +230,33 @@ export default function EditMemberModal({
             </div>
 
             <div>
-              <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
-                PENDIDIKAN
-              </label>
+              <label className="mono-label">PENDIDIKAN</label>
               <input
                 type="text"
                 value={formData.pendidikan || ""}
                 onChange={(e) => setFormData({ ...formData, pendidikan: e.target.value })}
                 placeholder="DIPLOMA IV / STRATA I"
-                className="w-full px-2 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] text-xs"
+                className="mono-input"
               />
             </div>
 
             <div>
-              <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
-                PEKERJAAN
-              </label>
+              <label className="mono-label">PEKERJAAN</label>
               <input
                 type="text"
                 value={formData.jenis_pekerjaan || ""}
                 onChange={(e) => setFormData({ ...formData, jenis_pekerjaan: e.target.value })}
                 placeholder="KARYAWAN SWASTA"
-                className="w-full px-2 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] text-xs"
+                className="mono-input"
               />
             </div>
 
             <div>
-              <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
-                GOL. DARAH
-              </label>
+              <label className="mono-label">GOL. DARAH</label>
               <select
                 value={formData.golongan_darah || "-"}
                 onChange={(e) => setFormData({ ...formData, golongan_darah: e.target.value })}
-                className="w-full px-2 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] text-xs font-mono-tech"
+                className="mono-input font-mono-tech"
               >
                 <option value="-">-</option>
                 <option value="A">A</option>
@@ -263,13 +270,11 @@ export default function EditMemberModal({
           {/* Row 4: Status Perkawinan & Hubungan */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
-                STATUS PERKAWINAN
-              </label>
+              <label className="mono-label">STATUS PERKAWINAN</label>
               <select
                 value={formData.status_perkawinan || "BELUM KAWIN"}
                 onChange={(e) => setFormData({ ...formData, status_perkawinan: e.target.value })}
-                className="w-full px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] text-xs"
+                className="mono-input"
               >
                 <option value="BELUM KAWIN">BELUM KAWIN</option>
                 <option value="KAWIN TERCATAT">KAWIN TERCATAT</option>
@@ -280,13 +285,11 @@ export default function EditMemberModal({
             </div>
 
             <div>
-              <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
-                HUBUNGAN DALAM KELUARGA *
-              </label>
+              <label className="mono-label">HUBUNGAN KELUARGA *</label>
               <select
                 value={formData.status_hubungan_dalam_keluarga || "KEPALA KELUARGA"}
                 onChange={(e) => setFormData({ ...formData, status_hubungan_dalam_keluarga: e.target.value })}
-                className="w-full px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] text-xs font-bold"
+                className="mono-input font-bold"
               >
                 <option value="KEPALA KELUARGA">KEPALA KELUARGA</option>
                 <option value="SUAMI">SUAMI</option>
@@ -302,49 +305,59 @@ export default function EditMemberModal({
             </div>
           </div>
 
-          {/* Row 5: Nama Ayah & Nama Ibu */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Row 5: Kewarganegaraan & Ortu */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
-                NAMA AYAH
-              </label>
+              <label className="mono-label">KEWARGANEGARAAN</label>
+              <select
+                value={formData.kewarganegaraan || "WNI"}
+                onChange={(e) => setFormData({ ...formData, kewarganegaraan: e.target.value })}
+                className="mono-input"
+              >
+                <option value="WNI">WNI</option>
+                <option value="WNA">WNA</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="mono-label">NAMA AYAH</label>
               <input
                 type="text"
                 value={formData.nama_ayah || ""}
                 onChange={(e) => setFormData({ ...formData, nama_ayah: e.target.value.toUpperCase() })}
-                placeholder="NAMA AYAH KANDUNG"
-                className="w-full px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] text-xs"
+                placeholder="NAMA AYAH"
+                className="mono-input"
               />
             </div>
 
             <div>
-              <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
-                NAMA IBU
-              </label>
+              <label className="mono-label">NAMA IBU</label>
               <input
                 type="text"
                 value={formData.nama_ibu || ""}
                 onChange={(e) => setFormData({ ...formData, nama_ibu: e.target.value.toUpperCase() })}
-                placeholder="NAMA IBU KANDUNG"
-                className="w-full px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] text-xs"
+                placeholder="NAMA IBU"
+                className="mono-input"
               />
             </div>
           </div>
 
-          {/* Modal Actions */}
-          <div className="flex items-center justify-end gap-2 pt-4 border-t border-[var(--border-light)]">
+          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-[var(--border-light)]">
             <button
               onClick={onClose}
               type="button"
-              className="mono-btn-secondary px-4 py-2 min-h-[38px] text-xs"
+              className="mono-btn-secondary px-4 py-2 text-xs"
             >
               Batal
             </button>
             <button
               type="submit"
-              className="mono-btn-primary px-5 py-2 min-h-[38px] text-xs font-bold"
+              className="mono-btn-primary px-5 py-2 text-xs font-semibold flex items-center gap-2"
             >
-              Simpan Data Anggota
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span>{formData.id ? "Simpan Perubahan" : "Tambahkan ke Tabel"}</span>
             </button>
           </div>
         </form>

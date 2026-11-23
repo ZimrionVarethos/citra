@@ -199,7 +199,7 @@ export default function KonfirmasiPage() {
       <Toast toasts={toasts} onDismiss={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))} />
 
       {/* Breadcrumb Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-[var(--border-strong)] pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border-light)] pb-5">
         <div>
           <div className="flex items-center gap-2 text-xs font-mono-tech text-[var(--text-secondary)]">
             <Link href="/" className="hover:underline">
@@ -208,38 +208,53 @@ export default function KonfirmasiPage() {
             <span>/</span>
             <span className="font-bold text-[var(--text-primary)]">Formulir Konfirmasi &amp; Edit</span>
           </div>
-          <h1 className="font-extrabold text-2xl text-[var(--text-primary)] mt-1">
+          <h1 className="font-extrabold text-2xl text-[var(--text-primary)] mt-1 tracking-tight">
             Konfirmasi Hasil Ekstraksi OCR Kartu Keluarga
           </h1>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Link href="/" className="mono-btn-secondary px-4 py-2 text-xs font-mono-tech">
-            ← Kembali / Pindai Ulang
+        <div className="flex items-center gap-2.5">
+          <Link href="/" className="mono-btn-secondary px-3.5 py-2 text-xs flex items-center gap-1.5">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span>Pindai Ulang</span>
           </Link>
           <button
             disabled={isSaving}
             onClick={handleSaveToDatabase}
-            className="mono-btn-primary px-5 py-2 text-xs sm:text-sm font-bold flex items-center gap-2 disabled:opacity-50"
+            className="mono-btn-primary px-5 py-2 text-xs sm:text-sm font-semibold flex items-center gap-2 disabled:opacity-50"
           >
-            {isSaving ? "Menyimpan ke Database..." : "Simpan ke Database (POST /api/kk) ✓"}
+            {isSaving ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>Menyimpan ke Database...</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Simpan ke Database</span>
+              </>
+            )}
           </button>
         </div>
       </div>
 
-      {/* OCR DIAGNOSTICS & WARNINGS */}
+      {/* OCR Diagnostics & Warnings */}
       {catatan.length > 0 && (
-        <div className="p-4 rounded border-2 border-amber-500/40 bg-amber-500/10 text-xs font-mono-tech space-y-2">
+        <div className="p-4 rounded-xl border border-amber-300 dark:border-amber-800/60 bg-amber-50/70 dark:bg-amber-950/20 text-xs font-mono-tech space-y-2">
           <div className="flex items-center justify-between">
-            <span className="font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <span className="font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+              <svg className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
-              Catatan &amp; Diagnostik Mesin Pemindai ({catatan.length})
+              <span>Catatan &amp; Diagnostik Mesin Pemindai ({catatan.length})</span>
             </span>
             <span className="text-[10px] text-[var(--text-muted)]">Periksa kembali data yang ditandai sebelum menyimpan</span>
           </div>
-          <ul className="list-disc pl-5 space-y-1 text-[var(--text-secondary)]">
+          <ul className="list-disc pl-5 space-y-1 text-amber-900/80 dark:text-amber-200/80">
             {catatan.map((c, idx) => (
               <li key={idx}>{c}</li>
             ))}
@@ -247,46 +262,52 @@ export default function KonfirmasiPage() {
         </div>
       )}
 
-      {/* IMAGE PREVIEW PANEL */}
+      {/* Image Preview Panel */}
       {gambarUrl && (
-        <div className="mono-card p-4 space-y-2">
+        <div className="mono-card p-4 space-y-2.5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="font-mono-tech text-[10px] font-bold uppercase text-[var(--text-muted)]">
+            <div className="flex items-center gap-2.5">
+              <span className="font-mono-tech text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
                 ARSIP CITRA YANG DIPINDAI
               </span>
               <button
                 type="button"
                 onClick={() => setShowImagePreview(!showImagePreview)}
-                className="text-[11px] font-mono-tech px-2 py-0.5 rounded border border-[var(--border-mid)] hover:bg-[var(--bg-muted)]"
+                className="text-[11px] font-medium px-2.5 py-1 rounded-md border border-[var(--border-mid)] hover:bg-[var(--bg-subtle)] flex items-center gap-1.5 transition-colors"
               >
-                {showImagePreview ? "Sembunyikan Gambar ▲" : "Tampilkan Gambar ▼"}
+                <span>{showImagePreview ? "Sembunyikan Gambar" : "Tampilkan Gambar"}</span>
+                <svg className={`w-3.5 h-3.5 transition-transform ${showImagePreview ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
               </button>
             </div>
             <a
               href={gambarUrl}
               target="_blank"
               rel="noreferrer"
-              className="text-[11px] font-mono-tech underline hover:text-[var(--text-primary)]"
+              className="text-[11px] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] inline-flex items-center gap-1"
             >
-              Buka Gambar Resolusi Penuh ↗
+              <span>Resolusi Penuh</span>
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
             </a>
           </div>
           {showImagePreview && (
-            <div className="max-h-80 overflow-auto rounded border border-[var(--border-light)] bg-black/5 flex items-center justify-center p-2">
+            <div className="max-h-80 overflow-auto rounded-lg border border-[var(--border-light)] bg-black/5 dark:bg-black/40 flex items-center justify-center p-2">
               <img
                 src={gambarUrl}
                 alt="Hasil scan Kartu Keluarga"
-                className="max-h-72 object-contain w-auto mx-auto shadow-sm"
+                className="max-h-72 object-contain w-auto mx-auto rounded shadow-sm"
               />
             </div>
           )}
         </div>
       )}
 
-      {/* CARD 1: FORM EDITABLE IDENTITAS KK */}
-      <div className="mono-card p-5 space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[var(--border-strong)] pb-3">
+      {/* Card 1: Form Editable Identitas KK */}
+      <div className="mono-card p-6 space-y-5">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-light)] pb-3.5">
           <div>
             <h2 className="font-bold text-base text-[var(--text-primary)]">
               1. Identitas Kepala Keluarga &amp; Alamat Domisili
@@ -299,7 +320,7 @@ export default function KonfirmasiPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
           <div>
-            <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
+            <label className="mono-label">
               NOMOR KARTU KELUARGA (16 DIGIT) *
             </label>
             <input
@@ -309,13 +330,16 @@ export default function KonfirmasiPage() {
               onChange={(e) =>
                 handleIdentitasChange("no_kk", e.target.value.replace(/\D/g, "").slice(0, 16))
               }
-              className={`w-full px-3 py-2 min-h-[38px] rounded bg-[var(--bg-subtle)] border-2 font-mono-tech font-bold text-sm text-[var(--text-primary)] ${
-                isNoKkValid ? "border-[var(--border-strong)]" : "border-red-500 bg-red-50 dark:bg-red-950/20"
+              className={`mono-input font-mono-tech font-bold text-sm ${
+                !isNoKkValid ? "!border-red-500 !bg-red-50/50 dark:!bg-red-950/20" : ""
               }`}
             />
             {!isNoKkValid && (
-              <span className="text-[10px] font-mono-tech text-red-600 block mt-1">
-                Wajib 16 digit ({identitas.no_kk?.length || 0}/16)
+              <span className="text-[10px] font-mono-tech text-red-600 block mt-1.5 flex items-center gap-1">
+                <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span>Wajib 16 digit ({identitas.no_kk?.length || 0}/16)</span>
               </span>
             )}
             {fieldErrors.no_kk && (
@@ -326,148 +350,139 @@ export default function KonfirmasiPage() {
           </div>
 
           <div>
-            <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
+            <label className="mono-label">
               NAMA KEPALA KELUARGA *
             </label>
             <input
               type="text"
               value={identitas.nama_kepala_keluarga || ""}
               onChange={(e) => handleIdentitasChange("nama_kepala_keluarga", e.target.value.toUpperCase())}
-              className={`w-full px-3 py-2 min-h-[38px] rounded bg-[var(--bg-subtle)] border-2 font-bold text-sm text-[var(--text-primary)] ${
-                isKepalaValid ? "border-[var(--border-strong)]" : "border-red-500 bg-red-50 dark:bg-red-950/20"
+              className={`mono-input font-bold text-sm ${
+                !isKepalaValid ? "!border-red-500 !bg-red-50/50 dark:!bg-red-950/20" : ""
               }`}
             />
             {!isKepalaValid && (
-              <span className="text-[10px] font-mono-tech text-red-600 block mt-1">
-                Nama Kepala Keluarga tidak boleh kosong
+              <span className="text-[10px] font-mono-tech text-red-600 block mt-1.5 flex items-center gap-1">
+                <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span>Nama Kepala Keluarga tidak boleh kosong</span>
               </span>
             )}
           </div>
 
           <div>
-            <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
+            <label className="mono-label">
               TANGGAL DIKELUARKAN
             </label>
             <input
               type="date"
               value={identitas.tanggal_dikeluarkan || ""}
               onChange={(e) => handleIdentitasChange("tanggal_dikeluarkan", e.target.value)}
-              className="w-full px-3 py-2 min-h-[38px] rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] font-mono-tech text-xs text-[var(--text-primary)]"
+              className="mono-input font-mono-tech"
             />
           </div>
         </div>
 
         <div>
-          <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
+          <label className="mono-label">
             ALAMAT LENGKAP (JALAN / GANG / NO RUMAH) *
           </label>
           <input
             type="text"
             value={identitas.alamat || ""}
             onChange={(e) => handleIdentitasChange("alamat", e.target.value)}
-            className={`w-full px-3 py-2 min-h-[38px] rounded bg-[var(--bg-subtle)] border-2 text-xs sm:text-sm text-[var(--text-primary)] ${
-              isAlamatValid ? "border-[var(--border-strong)]" : "border-red-500 bg-red-50 dark:bg-red-950/20"
+            className={`mono-input ${
+              !isAlamatValid ? "!border-red-500 !bg-red-50/50 dark:!bg-red-950/20" : ""
             }`}
           />
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 text-xs">
           <div>
-            <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
-              RT
-            </label>
+            <label className="mono-label">RT</label>
             <input
               type="text"
               maxLength={3}
               value={identitas.rt || ""}
               onChange={(e) => handleIdentitasChange("rt", e.target.value)}
-              className="w-full px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] font-mono-tech text-xs"
+              className="mono-input font-mono-tech"
             />
           </div>
 
           <div>
-            <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
-              RW
-            </label>
+            <label className="mono-label">RW</label>
             <input
               type="text"
               maxLength={3}
               value={identitas.rw || ""}
               onChange={(e) => handleIdentitasChange("rw", e.target.value)}
-              className="w-full px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] font-mono-tech text-xs"
+              className="mono-input font-mono-tech"
             />
           </div>
 
           <div>
-            <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
-              DESA / KELURAHAN
-            </label>
+            <label className="mono-label">DESA / KELURAHAN</label>
             <input
               type="text"
               value={identitas.desa_kelurahan || ""}
               onChange={(e) => handleIdentitasChange("desa_kelurahan", e.target.value.toUpperCase())}
-              className="w-full px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] text-xs"
+              className="mono-input"
             />
           </div>
 
           <div>
-            <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
-              KECAMATAN
-            </label>
+            <label className="mono-label">KECAMATAN</label>
             <input
               type="text"
               value={identitas.kecamatan || ""}
               onChange={(e) => handleIdentitasChange("kecamatan", e.target.value.toUpperCase())}
-              className="w-full px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] text-xs"
+              className="mono-input"
             />
           </div>
 
           <div>
-            <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
-              KAB / KOTA
-            </label>
+            <label className="mono-label">KAB / KOTA</label>
             <input
               type="text"
               value={identitas.kabupaten_kota || ""}
               onChange={(e) => handleIdentitasChange("kabupaten_kota", e.target.value.toUpperCase())}
-              className="w-full px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] text-xs"
+              className="mono-input"
             />
           </div>
 
           <div>
-            <label className="block font-mono-tech font-bold text-[var(--text-secondary)] mb-1">
-              KODE POS
-            </label>
+            <label className="mono-label">KODE POS</label>
             <input
               type="text"
               maxLength={5}
               value={identitas.kode_pos || ""}
               onChange={(e) => handleIdentitasChange("kode_pos", e.target.value)}
-              className="w-full px-3 py-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-strong)] font-mono-tech text-xs"
+              className="mono-input font-mono-tech"
             />
           </div>
         </div>
       </div>
 
-      {/* CARD 2: EDITABLE MEMBERS TABLE */}
-      <div className="mono-card p-5 space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-[var(--border-strong)] pb-3">
+      {/* Card 2: Editable Members Table */}
+      <div className="mono-card p-6 space-y-5">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-light)] pb-3.5">
           <div>
             <h2 className="font-bold text-base text-[var(--text-primary)]">
               2. Daftar Anggota Keluarga ({anggota.length} Orang)
             </h2>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             {/* Table view switcher */}
-            <div className="inline-flex rounded border border-[var(--border-strong)] overflow-hidden text-xs font-mono-tech">
+            <div className="inline-flex rounded-lg border border-[var(--border-mid)] p-0.5 bg-[var(--bg-subtle)] text-xs font-medium">
               <button
                 type="button"
                 onClick={() => setActiveTab("ALL")}
-                className={`px-3 py-1.5 font-bold ${
+                className={`px-3 py-1 rounded-md transition-colors ${
                   activeTab === "ALL"
-                    ? "bg-[var(--bg-emphasis)] text-[var(--text-inverted)]"
-                    : "bg-[var(--bg-surface)] text-[var(--text-primary)]"
+                    ? "bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm font-semibold"
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                 }`}
               >
                 Ringkasan
@@ -475,79 +490,82 @@ export default function KonfirmasiPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("UPPER")}
-                className={`px-3 py-1.5 font-bold ${
+                className={`px-3 py-1 rounded-md transition-colors ${
                   activeTab === "UPPER"
-                    ? "bg-[var(--bg-emphasis)] text-[var(--text-inverted)]"
-                    : "bg-[var(--bg-surface)] text-[var(--text-primary)]"
+                    ? "bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm font-semibold"
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                 }`}
               >
-                Tabel Atas (TTL, Agama)
+                Tabel Atas
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab("LOWER")}
-                className={`px-3 py-1.5 font-bold ${
+                className={`px-3 py-1 rounded-md transition-colors ${
                   activeTab === "LOWER"
-                    ? "bg-[var(--bg-emphasis)] text-[var(--text-inverted)]"
-                    : "bg-[var(--bg-surface)] text-[var(--text-primary)]"
+                    ? "bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm font-semibold"
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                 }`}
               >
-                Tabel Bawah (Relasi &amp; Ortu)
+                Tabel Bawah
               </button>
             </div>
 
             <button
               type="button"
               onClick={handleAddMember}
-              className="mono-btn-primary px-3 py-1.5 text-xs font-mono-tech"
+              className="mono-btn-primary px-3 py-1.5 text-xs font-medium flex items-center gap-1.5"
             >
-              + Tambah Anggota
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <span>Tambah Anggota</span>
             </button>
           </div>
         </div>
 
         {/* Table Content */}
-        <div className="overflow-x-auto border border-[var(--border-strong)] rounded">
+        <div className="overflow-x-auto border border-[var(--border-light)] rounded-xl">
           <table className="w-full text-left border-collapse text-xs">
-            <thead className="bg-[var(--bg-muted)] border-b border-[var(--border-strong)] font-mono-tech uppercase text-[11px]">
+            <thead className="bg-[var(--bg-subtle)] border-b border-[var(--border-light)] font-mono-tech uppercase text-[11px] text-[var(--text-secondary)]">
               <tr>
-                <th className="p-2.5">No</th>
-                <th className="p-2.5">Nama Lengkap</th>
-                <th className="p-2.5">NIK (16 Digit)</th>
+                <th className="p-3">No</th>
+                <th className="p-3">Nama Lengkap</th>
+                <th className="p-3">NIK (16 Digit)</th>
                 {activeTab === "ALL" && (
                   <>
-                    <th className="p-2.5">JK</th>
-                    <th className="p-2.5">Tgl Lahir</th>
-                    <th className="p-2.5">Hubungan</th>
-                    <th className="p-2.5">Pekerjaan</th>
+                    <th className="p-3">JK</th>
+                    <th className="p-3">Tgl Lahir</th>
+                    <th className="p-3">Hubungan</th>
+                    <th className="p-3">Pekerjaan</th>
                   </>
                 )}
                 {activeTab === "UPPER" && (
                   <>
-                    <th className="p-2.5">JK</th>
-                    <th className="p-2.5">Tempat Lahir</th>
-                    <th className="p-2.5">Tgl Lahir</th>
-                    <th className="p-2.5">Agama</th>
-                    <th className="p-2.5">Pendidikan</th>
-                    <th className="p-2.5">Gol. Darah</th>
+                    <th className="p-3">JK</th>
+                    <th className="p-3">Tempat Lahir</th>
+                    <th className="p-3">Tgl Lahir</th>
+                    <th className="p-3">Agama</th>
+                    <th className="p-3">Pendidikan</th>
+                    <th className="p-3">Gol. Darah</th>
                   </>
                 )}
                 {activeTab === "LOWER" && (
                   <>
-                    <th className="p-2.5">Status Kawin</th>
-                    <th className="p-2.5">Hubungan Keluarga</th>
-                    <th className="p-2.5">Kewarganegaraan</th>
-                    <th className="p-2.5">Nama Ayah</th>
-                    <th className="p-2.5">Nama Ibu</th>
+                    <th className="p-3">Status Kawin</th>
+                    <th className="p-3">Hubungan Keluarga</th>
+                    <th className="p-3">Kewarganegaraan</th>
+                    <th className="p-3">Nama Ayah</th>
+                    <th className="p-3">Nama Ibu</th>
                   </>
                 )}
-                <th className="p-2.5 text-right">Aksi</th>
+                <th className="p-3 text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border-light)] font-mono-tech">
               {anggota.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="p-8 text-center text-zinc-400 italic">
+                  <td colSpan={10} className="p-8 text-center text-[var(--text-muted)] italic">
                     Belum ada anggota keluarga. Klik &quot;+ Tambah Anggota&quot; untuk menambahkan baris data.
                   </td>
                 </tr>
@@ -559,17 +577,17 @@ export default function KonfirmasiPage() {
                   return (
                     <tr
                       key={idx}
-                      className={`hover:bg-[var(--bg-subtle)] ${
-                        !isNikValid || !isNamaValid ? "bg-red-50/50 dark:bg-red-950/20" : ""
+                      className={`hover:bg-[var(--bg-subtle)] transition-colors ${
+                        !isNikValid || !isNamaValid ? "bg-red-50/40 dark:bg-red-950/20" : ""
                       }`}
                     >
-                      <td className="p-2.5 font-bold">{m.no_urut || idx + 1}</td>
-                      <td className="p-2.5 font-bold">
+                      <td className="p-3 font-bold">{m.no_urut || idx + 1}</td>
+                      <td className="p-3 font-bold">
                         <span className={!isNamaValid ? "text-red-600 underline" : ""}>
                           {m.nama_lengkap || "(Nama Kosong)"}
                         </span>
                       </td>
-                      <td className="p-2.5 font-bold">
+                      <td className="p-3 font-bold">
                         <span className={!isNikValid ? "text-red-600 font-bold underline" : ""}>
                           {m.nik || "(NIK Kosong)"}
                         </span>
@@ -577,48 +595,48 @@ export default function KonfirmasiPage() {
 
                       {activeTab === "ALL" && (
                         <>
-                          <td className="p-2.5">{m.jenis_kelamin?.startsWith("P") ? "P" : "L"}</td>
-                          <td className="p-2.5">{m.tanggal_lahir || "-"}</td>
-                          <td className="p-2.5 text-[var(--text-secondary)] font-bold">
+                          <td className="p-3">{m.jenis_kelamin?.startsWith("P") ? "P" : "L"}</td>
+                          <td className="p-3">{m.tanggal_lahir || "-"}</td>
+                          <td className="p-3 text-[var(--text-secondary)] font-bold">
                             {m.status_hubungan_dalam_keluarga || "-"}
                           </td>
-                          <td className="p-2.5 truncate max-w-[120px]">{m.jenis_pekerjaan || "-"}</td>
+                          <td className="p-3 truncate max-w-[140px]">{m.jenis_pekerjaan || "-"}</td>
                         </>
                       )}
 
                       {activeTab === "UPPER" && (
                         <>
-                          <td className="p-2.5">{m.jenis_kelamin}</td>
-                          <td className="p-2.5">{m.tempat_lahir || "-"}</td>
-                          <td className="p-2.5">{m.tanggal_lahir || "-"}</td>
-                          <td className="p-2.5">{m.agama || "-"}</td>
-                          <td className="p-2.5">{m.pendidikan || "-"}</td>
-                          <td className="p-2.5 text-center">{m.golongan_darah || "-"}</td>
+                          <td className="p-3">{m.jenis_kelamin}</td>
+                          <td className="p-3">{m.tempat_lahir || "-"}</td>
+                          <td className="p-3">{m.tanggal_lahir || "-"}</td>
+                          <td className="p-3">{m.agama || "-"}</td>
+                          <td className="p-3">{m.pendidikan || "-"}</td>
+                          <td className="p-3 text-center">{m.golongan_darah || "-"}</td>
                         </>
                       )}
 
                       {activeTab === "LOWER" && (
                         <>
-                          <td className="p-2.5">{m.status_perkawinan || "-"}</td>
-                          <td className="p-2.5 font-bold">{m.status_hubungan_dalam_keluarga || "-"}</td>
-                          <td className="p-2.5">{m.kewarganegaraan || "WNI"}</td>
-                          <td className="p-2.5">{m.nama_ayah || "-"}</td>
-                          <td className="p-2.5">{m.nama_ibu || "-"}</td>
+                          <td className="p-3">{m.status_perkawinan || "-"}</td>
+                          <td className="p-3 font-bold">{m.status_hubungan_dalam_keluarga || "-"}</td>
+                          <td className="p-3">{m.kewarganegaraan || "WNI"}</td>
+                          <td className="p-3">{m.nama_ayah || "-"}</td>
+                          <td className="p-3">{m.nama_ibu || "-"}</td>
                         </>
                       )}
 
-                      <td className="p-2.5 text-right whitespace-nowrap">
+                      <td className="p-3 text-right whitespace-nowrap">
                         <button
                           type="button"
                           onClick={() => handleEditMember(idx)}
-                          className="mono-btn-secondary px-2 py-1 text-[11px] mr-1"
+                          className="mono-btn-secondary px-2.5 py-1 text-[11px] mr-1.5"
                         >
                           Edit
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDeleteMember(idx)}
-                          className="px-2 py-1 text-[11px] text-red-600 hover:bg-red-50 rounded border border-red-300"
+                          className="px-2.5 py-1 text-[11px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg border border-red-200 dark:border-red-900/40 transition-colors"
                         >
                           Hapus
                         </button>
@@ -632,22 +650,34 @@ export default function KonfirmasiPage() {
         </div>
 
         {/* Bottom Save Action Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-[var(--border-strong)]">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-[var(--border-light)]">
           <div className="text-xs font-mono-tech text-[var(--text-secondary)]">
-            Total Anggota: <strong>{anggota.length}</strong> • Pastikan seluruh NIK 16 digit dan nama terisi dengan benar.
+            Total Anggota: <strong>{anggota.length}</strong> &bull; Pastikan seluruh NIK 16 digit dan nama terisi dengan benar.
           </div>
 
-          <div className="flex items-center gap-2">
-            <Link href="/" className="mono-btn-secondary px-4 py-2 text-xs font-mono-tech">
+          <div className="flex items-center gap-2.5">
+            <Link href="/" className="mono-btn-secondary px-4 py-2 text-xs">
               Batal
             </Link>
             <button
               disabled={isSaving}
               type="button"
               onClick={handleSaveToDatabase}
-              className="mono-btn-primary px-6 py-2.5 text-xs sm:text-sm font-bold flex items-center gap-2 disabled:opacity-50"
+              className="mono-btn-primary px-6 py-2.5 text-xs sm:text-sm font-semibold flex items-center gap-2 disabled:opacity-50"
             >
-              {isSaving ? "Menyimpan ke Database..." : "Simpan ke Database (POST /api/kk) →"}
+              {isSaving ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Menyimpan ke Database...</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Simpan ke Database</span>
+                </>
+              )}
             </button>
           </div>
         </div>
