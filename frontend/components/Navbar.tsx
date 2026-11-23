@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function Navbar() {
+  const pathname = usePathname();
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
@@ -21,36 +23,59 @@ export default function Navbar() {
     document.documentElement.setAttribute("data-theme", next);
   };
 
+  const isHomeActive = pathname === "/" || pathname === "/konfirmasi";
+  const isDataActive = pathname.startsWith("/kk");
+
   return (
-    <header className="sticky top-0 z-30 bg-[var(--bg-surface)] border-b border-[var(--border-light)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <header className="sticky top-0 z-30 bg-[var(--bg-surface)]/90 backdrop-blur-md border-b border-[var(--border-light)] transition-colors">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         {/* Brand */}
-        <Link href="/" className="font-bold text-base tracking-tight text-[var(--text-primary)] no-underline">
-          KK Scanner
+        <Link href="/" className="flex items-center gap-2 font-bold text-base sm:text-lg tracking-tight text-[var(--text-primary)] no-underline">
+          <div className="w-8 h-8 rounded-lg bg-red-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <span>KK Scanner</span>
         </Link>
 
-        {/* Navigation & Theme Toggle */}
-        <div className="flex items-center gap-3 sm:gap-4">
-          <nav aria-label="Navigasi Utama" className="flex items-center gap-1 sm:gap-2">
-            <Link
-              href="/"
-              className="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] transition-colors"
-            >
-              Pemindai
-            </Link>
-            <Link
-              href="/kk"
-              className="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] transition-colors"
-            >
-              Data Tersimpan
-            </Link>
-          </nav>
+        {/* 2 Navigation Menus */}
+        <nav aria-label="Navigasi Utama" className="flex items-center gap-6 sm:gap-8">
+          <Link
+            href="/"
+            className={`relative py-5 text-xs sm:text-sm font-medium transition-colors ${
+              isHomeActive
+                ? "text-red-600 dark:text-red-400 font-semibold"
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            Beranda
+            {isHomeActive && (
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600 dark:bg-red-400 rounded-full" />
+            )}
+          </Link>
+          <Link
+            href="/kk"
+            className={`relative py-5 text-xs sm:text-sm font-medium transition-colors ${
+              isDataActive
+                ? "text-red-600 dark:text-red-400 font-semibold"
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            Data Tersimpan
+            {isDataActive && (
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600 dark:bg-red-400 rounded-full" />
+            )}
+          </Link>
+        </nav>
 
+        {/* Right action: Theme toggle */}
+        <div className="flex items-center">
           <button
             type="button"
             onClick={toggleTheme}
             aria-label="Ganti tema warna"
-            className="p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] border border-[var(--border-mid)] transition-colors"
+            className="w-9 h-9 rounded-xl text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] border border-[var(--border-mid)] flex items-center justify-center transition-colors shadow-sm"
           >
             {theme === "light" ? (
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
