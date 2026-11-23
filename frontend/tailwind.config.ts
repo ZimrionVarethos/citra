@@ -10,8 +10,9 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-sans)", "Plus Jakarta Sans", "sans-serif"],
-        mono: ["var(--font-mono)", "IBM Plex Mono", "monospace"],
+        sans: ["var(--font-ubuntu)", "Ubuntu", "sans-serif"],
+        mono: ["var(--font-ubuntu)", "Ubuntu", "sans-serif"],
+        ubuntu: ["var(--font-ubuntu)", "Ubuntu", "sans-serif"],
       },
       colors: {
         canvas: "var(--bg-canvas)",

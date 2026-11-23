@@ -330,9 +330,8 @@ export default function KonfirmasiPage() {
               onChange={(e) =>
                 handleIdentitasChange("no_kk", e.target.value.replace(/\D/g, "").slice(0, 16))
               }
-              className={`mono-input font-mono-tech font-bold text-sm ${
-                !isNoKkValid ? "!border-red-500 !bg-red-50/50 dark:!bg-red-950/20" : ""
-              }`}
+              className={`mono-input font-mono-tech font-bold text-sm ${!isNoKkValid ? "!border-red-500 !bg-red-50/50 dark:!bg-red-950/20" : ""
+                }`}
             />
             {!isNoKkValid && (
               <span className="text-[10px] font-mono-tech text-red-600 block mt-1.5 flex items-center gap-1">
@@ -357,9 +356,8 @@ export default function KonfirmasiPage() {
               type="text"
               value={identitas.nama_kepala_keluarga || ""}
               onChange={(e) => handleIdentitasChange("nama_kepala_keluarga", e.target.value.toUpperCase())}
-              className={`mono-input font-bold text-sm ${
-                !isKepalaValid ? "!border-red-500 !bg-red-50/50 dark:!bg-red-950/20" : ""
-              }`}
+              className={`mono-input font-bold text-sm ${!isKepalaValid ? "!border-red-500 !bg-red-50/50 dark:!bg-red-950/20" : ""
+                }`}
             />
             {!isKepalaValid && (
               <span className="text-[10px] font-mono-tech text-red-600 block mt-1.5 flex items-center gap-1">
@@ -392,9 +390,8 @@ export default function KonfirmasiPage() {
             type="text"
             value={identitas.alamat || ""}
             onChange={(e) => handleIdentitasChange("alamat", e.target.value)}
-            className={`mono-input ${
-              !isAlamatValid ? "!border-red-500 !bg-red-50/50 dark:!bg-red-950/20" : ""
-            }`}
+            className={`mono-input ${!isAlamatValid ? "!border-red-500 !bg-red-50/50 dark:!bg-red-950/20" : ""
+              }`}
           />
         </div>
 
@@ -479,33 +476,30 @@ export default function KonfirmasiPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("ALL")}
-                className={`px-3 py-1 rounded-md transition-colors ${
-                  activeTab === "ALL"
+                className={`px-3 py-1 rounded-md transition-colors ${activeTab === "ALL"
                     ? "bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm font-semibold"
                     : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                }`}
+                  }`}
               >
                 Ringkasan
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab("UPPER")}
-                className={`px-3 py-1 rounded-md transition-colors ${
-                  activeTab === "UPPER"
+                className={`px-3 py-1 rounded-md transition-colors ${activeTab === "UPPER"
                     ? "bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm font-semibold"
                     : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                }`}
+                  }`}
               >
                 Tabel Atas
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab("LOWER")}
-                className={`px-3 py-1 rounded-md transition-colors ${
-                  activeTab === "LOWER"
+                className={`px-3 py-1 rounded-md transition-colors ${activeTab === "LOWER"
                     ? "bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm font-semibold"
                     : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                }`}
+                  }`}
               >
                 Tabel Bawah
               </button>
@@ -577,9 +571,8 @@ export default function KonfirmasiPage() {
                   return (
                     <tr
                       key={idx}
-                      className={`hover:bg-[var(--bg-subtle)] transition-colors ${
-                        !isNikValid || !isNamaValid ? "bg-red-50/40 dark:bg-red-950/20" : ""
-                      }`}
+                      className={`hover:bg-[var(--bg-subtle)] transition-colors ${!isNikValid || !isNamaValid ? "bg-red-50/40 dark:bg-red-950/20" : ""
+                        }`}
                     >
                       <td className="p-3 font-bold">{m.no_urut || idx + 1}</td>
                       <td className="p-3 font-bold">

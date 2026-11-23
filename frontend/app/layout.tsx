@@ -1,18 +1,12 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import { Ubuntu } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 
-const jakarta = Plus_Jakarta_Sans({
+const ubuntu = Ubuntu({
+  weight: ["300", "400", "500", "700"],
   subsets: ["latin"],
-  variable: "--font-sans",
-  display: "swap",
-});
-
-const plexMono = IBM_Plex_Mono({
-  weight: ["400", "500", "600", "700"],
-  subsets: ["latin"],
-  variable: "--font-mono",
+  variable: "--font-ubuntu",
   display: "swap",
 });
 
@@ -27,8 +21,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" data-theme="light" className={`${jakarta.variable} ${plexMono.variable} scroll-smooth`}>
-      <body className="min-h-screen flex flex-col font-sans">
+    <html lang="id" data-theme="light" className={`${ubuntu.variable} ${ubuntu.className} scroll-smooth`}>
+      <body className={`min-h-screen flex flex-col font-sans ${ubuntu.className}`}>
         <Navbar />
         <main className="flex-1">{children}</main>
       </body>
